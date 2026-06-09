@@ -1,0 +1,2710 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs" 
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ApprovalHistories {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id           String           @db.Uuid
+  module_id           String           @db.Uuid
+  item_id             String           @db.Uuid
+  company_position_id String           @db.Uuid
+  status              String           @db.VarChar(30)
+  remarks             String?
+  created_at          DateTime         @default(now()) @db.Timestamp(0)
+  created_by          String           @db.VarChar(255)
+  sequence_no         Int              @db.SmallInt
+  approval_action     String           @db.VarChar(100)
+  Branches            Branches         @relation(fields: [branch_id], references: [id])
+  CompanyPositions    CompanyPositions @relation(fields: [company_position_id], references: [id])
+  Modules             Modules          @relation(fields: [module_id], references: [id])
+}
+
+model AutoNumbering {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  numbering_name        String                  @db.VarChar(255)
+  module_id             String                  @db.Uuid
+  prefix_format         String                  @db.VarChar(255)
+  first_sequence        Int                     @db.SmallInt
+  padding_length        Int                     @db.SmallInt
+  created_at            DateTime                @default(now()) @db.Timestamp(0)
+  created_by            String                  @db.VarChar(255)
+  updated_at            DateTime?               @default(now()) @db.Timestamp(0)
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+  last_sequence         Int                     @db.SmallInt
+  flag_active           OptionFlag              @default(Y)
+  prefix_config         String?
+  prefix_counter        String?
+  additional_code       String?                 @db.VarChar(100)
+  flag_default          Boolean?                @default(false)
+  Modules               Modules                 @relation(fields: [module_id], references: [id])
+  AutoNumberingCounters AutoNumberingCounters[]
+  AutoNumberingDetails  AutoNumberingDetails[]
+}
+
+model AutoNumberingCounters {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module_id         String        @db.Uuid
+  auto_numbering_id String        @db.Uuid
+  prefix            String        @db.VarChar(300)
+  last_sequence     Int           @db.SmallInt
+  created_at        DateTime      @default(now()) @db.Timestamp(0)
+  created_by        String        @db.VarChar(255)
+  updated_at        DateTime?     @default(now()) @db.Timestamp(0)
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  AutoNumbering     AutoNumbering @relation(fields: [auto_numbering_id], references: [id])
+}
+
+model AutoNumberingDetails {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auto_numbering_id  String        @db.Uuid
+  prefix_name        String        @db.VarChar(255)
+  prefix_value       String        @db.VarChar(255)
+  separator          String?       @db.VarChar(10)
+  order_no           Int           @db.SmallInt
+  created_at         DateTime      @default(now()) @db.Timestamp(0)
+  created_by         String        @db.VarChar(255)
+  updated_at         DateTime?     @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  module_name        String?       @db.VarChar(300)
+  reference_field    String?       @db.VarChar(300)
+  flag_counter_reset OptionFlag    @default(N)
+  AutoNumbering      AutoNumbering @relation(fields: [auto_numbering_id], references: [id])
+}
+
+model BankMappings {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bank_id           String?          @db.Uuid
+  company_id        String?          @db.Uuid
+  branch_id         String?          @db.Uuid
+  currency_id       String?          @db.Uuid
+  bank_account_type BankAccountType?
+  bank_office_name  String           @db.VarChar(100)
+  bank_account_no   String           @db.VarChar(50)
+  bank_swift_code   String?          @db.VarChar(50)
+  coa               String           @db.VarChar(30)
+  created_at        DateTime         @default(now()) @db.Timestamp(0)
+  created_by        String           @db.VarChar(255)
+  updated_at        DateTime?        @default(now()) @db.Timestamp(0)
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  Banks             Banks?           @relation(fields: [bank_id], references: [id])
+  Branches          Branches?        @relation(fields: [branch_id], references: [id])
+  Companies         Companies?       @relation(fields: [company_id], references: [id])
+  Currencies        Currencies?      @relation(fields: [currency_id], references: [id])
+}
+
+model Banks {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bank_code    String         @db.VarChar(30)
+  bank_name    String?        @db.VarChar(100)
+  created_at   DateTime       @default(now()) @db.Timestamp(0)
+  created_by   String         @db.VarChar(255)
+  updated_at   DateTime?      @default(now()) @db.Timestamp(0)
+  updated_by   String?
+  deleted_at   DateTime?
+  deleted_by   String?
+  BankMappings BankMappings[]
+  VendorBanks  VendorBanks[]
+}
+
+model BillingSubTypes {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billing_type_id       String?       @db.Uuid
+  billing_sub_type_code String        @db.VarChar(30)
+  billing_sub_type_name String        @db.VarChar(50)
+  charge_group_id       String?       @db.Uuid
+  unearn_flag           Int?          @default(0) @db.SmallInt
+  unearn_period         Int?          @default(0) @db.SmallInt
+  unearn_coa            String?       @db.VarChar(72)
+  prepaid_flag          Int?          @default(0) @db.SmallInt
+  prepaid_period        Int?          @default(0) @db.SmallInt
+  prepaid_coa           String?       @db.VarChar(72)
+  created_at            DateTime      @default(now()) @db.Timestamp(0)
+  created_by            String        @db.VarChar(255)
+  updated_at            DateTime?     @default(now()) @db.Timestamp(0)
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+  budget_required       Int?          @default(0) @db.SmallInt
+  BillingTypes          BillingTypes? @relation(fields: [billing_type_id], references: [id])
+  ChargeGroups          ChargeGroups? @relation(fields: [charge_group_id], references: [id])
+  TBillings             TBillings[]
+  TBudgets              TBudgets[]
+  TProformas            TProformas[]
+}
+
+model BillingTypes {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billing_type_code         String                      @db.VarChar(30)
+  billing_type_name         String                      @db.VarChar(50)
+  partner_flag              EPartnerFlag?
+  proforma_required         Int?                        @default(0) @db.SmallInt
+  activity_flag             EActivityFlag?
+  vat_io                    EVatIo?
+  wht_io                    EWhtIo?
+  analysis_dk               EAnalysisDk?
+  summary_dk                ESummaryDk?
+  vat_list_flag             Int?                        @default(1) @db.SmallInt
+  wht_list_flag             Int?                        @default(0) @db.SmallInt
+  created_at                DateTime                    @default(now()) @db.Timestamp(0)
+  created_by                String                      @db.VarChar(255)
+  updated_at                DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_by                String?
+  deleted_at                DateTime?
+  deleted_by                String?
+  use_in                    String?                     @db.VarChar(50)
+  BillingSubTypes           BillingSubTypes[]
+  MappingBranchBillingTypes MappingBranchBillingTypes[]
+  TBillings                 TBillings[]
+  TBudgets                  TBudgets[]
+  TProformas                TProformas[]
+}
+
+model BranchApproval {
+  id                      String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id               String?           @db.Uuid
+  module_id               String?           @db.Uuid
+  department_id           String?           @db.Uuid
+  sequence_no             Int?              @db.SmallInt
+  company_id              String?           @db.Uuid
+  minimum_amount          Int?
+  maximum_amount          Int?
+  approval_type           Int?              @db.SmallInt
+  created_at              DateTime          @default(now()) @db.Timestamp(0)
+  created_by              String            @db.VarChar(255)
+  updated_at              DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by              String?
+  deleted_at              DateTime?
+  deleted_by              String?
+  approval_action         ApprovalAction?
+  company_position_id     String?           @db.Uuid
+  advanced_setup_approval Json?             @db.Json
+  Branches                Branches?         @relation(fields: [branch_id], references: [id])
+  Companies               Companies?        @relation(fields: [company_id], references: [id])
+  CompanyPositions        CompanyPositions? @relation(fields: [company_position_id], references: [id])
+  Departements            Departements?     @relation(fields: [department_id], references: [id])
+  Modules                 Modules?          @relation(fields: [module_id], references: [id])
+}
+
+model BranchProjectMonitoringCompanyPositions {
+  id                           String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_project_monitoring_id String?                   @db.Uuid
+  company_position_id          String?                   @db.Uuid
+  created_at                   DateTime                  @default(now()) @db.Timestamp(0)
+  created_by                   String                    @db.VarChar(255)
+  updated_at                   DateTime?
+  updated_by                   String?
+  deleted_at                   DateTime?
+  deleted_by                   String?
+  BranchProjectMonitorings     BranchProjectMonitorings? @relation(fields: [branch_project_monitoring_id], references: [id])
+  CompanyPositions             CompanyPositions?         @relation(fields: [company_position_id], references: [id])
+}
+
+model BranchProjectMonitoringDocuments {
+  id                           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_project_monitoring_id String                   @db.Uuid
+  document_type_id             String                   @db.Uuid
+  created_at                   DateTime                 @default(now()) @db.Timestamp(0)
+  created_by                   String                   @db.VarChar(255)
+  updated_at                   DateTime?
+  updated_by                   String?
+  deleted_at                   DateTime?
+  deleted_by                   String?
+  BranchProjectMonitorings     BranchProjectMonitorings @relation(fields: [branch_project_monitoring_id], references: [id])
+  DocumentTypes                DocumentTypes            @relation(fields: [document_type_id], references: [id])
+}
+
+model BranchProjectMonitoringPredecessors {
+  id                                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_project_monitoring_id            String                   @db.Uuid
+  project_monitoring_stage_predecessor_id String                   @db.Uuid
+  created_at                              DateTime                 @default(now()) @db.Timestamp(0)
+  created_by                              String                   @db.VarChar(255)
+  updated_at                              DateTime?
+  updated_by                              String?
+  deleted_at                              DateTime?
+  deleted_by                              String?
+  BranchProjectMonitorings                BranchProjectMonitorings @relation(fields: [branch_project_monitoring_id], references: [id])
+  ProjectMonitoringStage                  ProjectMonitoringStage   @relation(fields: [project_monitoring_stage_predecessor_id], references: [id])
+}
+
+model BranchProjectMonitoringRecipients {
+  id                           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_project_monitoring_id String                   @db.Uuid
+  recipient_name               String                   @db.VarChar(150)
+  recipient_email              String                   @db.VarChar(150)
+  recipient_type               String                   @default("internal") @db.VarChar(20)
+  created_at                   DateTime                 @default(now()) @db.Timestamp(0)
+  created_by                   String                   @db.VarChar(255)
+  updated_at                   DateTime?
+  updated_by                   String?
+  deleted_at                   DateTime?
+  deleted_by                   String?
+  BranchProjectMonitorings     BranchProjectMonitorings @relation(fields: [branch_project_monitoring_id], references: [id])
+}
+
+model BranchProjectMonitorings {
+  id                                      String                                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id                               String                                    @db.Uuid
+  charge_service_id                       String                                    @db.Uuid
+  project_monitoring_stage_id             String                                    @db.Uuid
+  start_flag                              OptionFlag                                @default(N)
+  finish_flag                             OptionFlag                                @default(N)
+  send_email_internal_flag                OptionFlag                                @default(N)
+  send_email_external_flag                OptionFlag                                @default(N)
+  billing_instruction_flag                OptionFlag                                @default(N)
+  default_billing_pct                     Int                                       @db.SmallInt
+  cancel_flag                             OptionFlag                                @default(N)
+  description                             String?
+  created_at                              DateTime                                  @default(now()) @db.Timestamp(0)
+  created_by                              String                                    @db.VarChar(255)
+  updated_at                              DateTime?
+  updated_by                              String?
+  deleted_at                              DateTime?
+  deleted_by                              String?
+  BranchProjectMonitoringCompanyPositions BranchProjectMonitoringCompanyPositions[]
+  BranchProjectMonitoringDocuments        BranchProjectMonitoringDocuments[]
+  BranchProjectMonitoringPredecessors     BranchProjectMonitoringPredecessors[]
+  BranchProjectMonitoringRecipients       BranchProjectMonitoringRecipients[]
+  Branches                                Branches                                  @relation(fields: [branch_id], references: [id])
+  ChargeServices                          ChargeServices                            @relation(fields: [charge_service_id], references: [id])
+  ProjectMonitoringStage                  ProjectMonitoringStage                    @relation(fields: [project_monitoring_stage_id], references: [id])
+  JobOrderBillingPercentages              JobOrderBillingPercentages[]
+}
+
+model Branches {
+  id                                                 String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_code                                        String                      @db.VarChar(100)
+  branch_name                                        String                      @db.VarChar(100)
+  branch_address                                     String
+  city_id                                            String?                     @db.Uuid
+  phone_no                                           String?                     @db.VarChar(100)
+  tax_reg_no                                         String?                     @db.VarChar(100)
+  company_id                                         String?                     @db.Uuid
+  office_flag                                        OfficeFlagBranch            @default(HO)
+  branch_id                                          String?                     @db.VarChar
+  invoice_bank_list                                  String?
+  coda_location_code                                 String?                     @db.VarChar(72)
+  coda_sinv_code                                     String?                     @db.VarChar(12)
+  coda_cinv_code                                     String?                     @db.VarChar(12)
+  coda_pinv_code                                     String?                     @db.VarChar(12)
+  coda_cr_code                                       String?                     @db.VarChar(12)
+  coda_br_code                                       String?                     @db.VarChar(12)
+  coda_bp_code                                       String?                     @db.VarChar(12)
+  coda_cp_code                                       String?                     @db.VarChar(12)
+  coda_adv_code                                      String?                     @db.VarChar(12)
+  coda_stadv_code                                    String?                     @db.VarChar(12)
+  coda_jgen_code                                     String?                     @db.VarChar(12)
+  coda_jaccr_code                                    String?                     @db.VarChar(12)
+  coda_jcor_code                                     String?                     @db.VarChar(12)
+  coda_jdef_code                                     String?                     @db.VarChar(12)
+  suspend_acct_code                                  String?                     @db.VarChar(72)
+  reimburse_acct_code                                String?                     @db.VarChar(72)
+  customer_adv_acct_code                             String?                     @db.VarChar(72)
+  created_at                                         DateTime                    @default(now()) @db.Timestamp(0)
+  created_by                                         String                      @db.VarChar(255)
+  updated_at                                         DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_by                                         String?
+  deleted_at                                         DateTime?
+  deleted_by                                         String?
+  fax_no                                             String?                     @db.VarChar(100)
+  reject_approval_action                             RejectAction?
+  customer_assigned_id                               String?                     @db.Uuid
+  flag_internet                                      String?                     @db.VarChar(3)
+  ApprovalHistories                                  ApprovalHistories[]
+  BankMappings                                       BankMappings[]
+  BranchApproval                                     BranchApproval[]
+  BranchProjectMonitorings                           BranchProjectMonitorings[]
+  Cities                                             Cities?                     @relation(fields: [city_id], references: [id])
+  Companies                                          Companies?                  @relation(fields: [company_id], references: [id])
+  Customers_Branches_customer_assigned_idToCustomers Customers?                  @relation("Branches_customer_assigned_idToCustomers", fields: [customer_assigned_id], references: [id])
+  CompanyAccessGroup                                 CompanyAccessGroup[]
+  Customers_Customers_branch_idToBranches            Customers[]                 @relation("Customers_branch_idToBranches")
+  Employee                                           Employee[]
+  JobOrders                                          JobOrders[]
+  Leads                                              Leads[]
+  MappingBranchBillingTypes                          MappingBranchBillingTypes[]
+  Opportunities                                      Opportunities[]
+  Quotations                                         Quotations[]
+  TBillings                                          TBillings[]
+  TBudgets                                           TBudgets[]
+  TProformas                                         TProformas[]
+  Vendors                                            Vendors[]
+}
+
+model BusinessEntities {
+  id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_entity_code String?     @db.VarChar(30)
+  business_entity_name String?     @db.VarChar(100)
+  created_at           DateTime    @default(now()) @db.Timestamp(0)
+  created_by           String      @db.VarChar(255)
+  updated_at           DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+  position_flag        Int?        @default(0) @db.SmallInt
+  printed_flag         Int         @default(0) @db.SmallInt
+  Customers            Customers[]
+  Vendors              Vendors[]
+}
+
+model BusinessPermits {
+  id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  business_permit_code String?     @db.VarChar(30)
+  business_permit_name String?     @db.VarChar(100)
+  created_at           DateTime    @default(now()) @db.Timestamp(0)
+  created_by           String      @db.VarChar(255)
+  updated_at           DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+  Customers            Customers[]
+  Leads                Leads[]
+  Vendors              Vendors[]
+}
+
+model ChargeCategories {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  charge_group_id      String?             @db.Uuid
+  charge_category_code String              @db.VarChar(30)
+  charge_category_name String              @db.VarChar(50)
+  coda_service_code    String?             @db.VarChar(72)
+  product_service_flag ProductServiceFlag?
+  created_at           DateTime            @default(now()) @db.Timestamp(0)
+  created_by           String              @db.VarChar(255)
+  updated_at           DateTime?           @default(now()) @db.Timestamp(0)
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+  previous_system_id   String?             @db.VarChar(30)
+  ChargeGroups         ChargeGroups?       @relation(fields: [charge_group_id], references: [id])
+  Charges              Charges[]
+  ProjectMappings      ProjectMappings[]
+  TBillingDetails      TBillingDetails[]
+  TBudgetDetails       TBudgetDetails[]
+  TProformaDetails     TProformaDetails[]
+}
+
+model ChargeDocuments {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  charge_id           String    @db.Uuid
+  document_name       String?   @db.VarChar(255)
+  document_url        String?   @db.VarChar(255)
+  validity_start_date DateTime? @db.Date
+  validity_end_date   DateTime? @db.Date
+  created_at          DateTime  @default(now()) @db.Timestamp(0)
+  created_by          String    @db.VarChar(255)
+  updated_at          DateTime? @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  Charges             Charges   @relation(fields: [charge_id], references: [id])
+}
+
+model ChargeGroups {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id         String?            @db.Uuid
+  charge_group_code  String             @db.VarChar(30)
+  charge_group_name  String             @db.VarChar(50)
+  created_at         DateTime           @default(now()) @db.Timestamp(0)
+  created_by         String             @db.VarChar(255)
+  updated_at         DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  previous_system_id String?            @db.VarChar(30)
+  BillingSubTypes    BillingSubTypes[]
+  ChargeCategories   ChargeCategories[]
+  Companies          Companies?         @relation(fields: [company_id], references: [id])
+  ProjectGroups      ProjectGroups[]
+}
+
+model ChargeServices {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service_code             String                     @db.VarChar(50)
+  service_name             String                     @db.VarChar(100)
+  created_at               DateTime                   @default(now()) @db.Timestamp(0)
+  created_by               String                     @db.VarChar(255)
+  updated_at               DateTime?
+  updated_by               String?
+  deleted_at               DateTime?
+  deleted_by               String?
+  template_tc_id           String?                    @db.Uuid
+  BranchProjectMonitorings BranchProjectMonitorings[]
+  JobOrders                JobOrders[]
+  Opportunities            Opportunities[]
+  TermConditions           TermConditions[]
+}
+
+model Charges {
+  id                                              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_service_flag                            ProductServiceFlag
+  charge_code                                     String               @db.VarChar(30)
+  charge_name                                     String               @db.VarChar(255)
+  charge_category_id                              String?              @db.Uuid
+  is_active                                       Int?                 @default(1) @db.SmallInt
+  coa_revenue                                     String?              @db.VarChar(36)
+  coa_cost                                        String?              @db.VarChar(36)
+  sales_start_date                                DateTime?            @db.Date
+  sales_end_date                                  DateTime?            @db.Date
+  support_start_date                              DateTime?            @db.Date
+  support_end_date                                DateTime?            @db.Date
+  part_number                                     String?              @db.VarChar(50)
+  vendor_part_number                              String?              @db.VarChar(50)
+  manufacture_part_number                         String?              @db.VarChar(50)
+  extref1_code                                    String?              @db.VarChar(50)
+  extref2_code                                    String?              @db.VarChar(50)
+  extref3_code                                    String?              @db.VarChar(50)
+  extref4_code                                    String?              @db.VarChar(50)
+  extref5_code                                    String?              @db.VarChar(50)
+  extref6_code                                    String?              @db.VarChar(50)
+  unit_id                                         String?              @db.Uuid
+  unit_qty                                        Int?                 @default(0)
+  stock_qty                                       Int?                 @default(0)
+  reorder_level                                   Int?                 @default(0)
+  reorder_qty                                     Int?                 @default(0)
+  currency_sell_id                                String?              @db.Uuid
+  selling_price                                   Float?
+  currency_buy_id                                 String?              @db.Uuid
+  buying_price                                    Float?
+  tax_vat_id                                      String?              @db.Uuid
+  tax_wht_id                                      String?              @db.Uuid
+  image_url                                       String?
+  description                                     String?
+  created_at                                      DateTime             @default(now()) @db.Timestamp(0)
+  created_by                                      String               @db.VarChar(255)
+  updated_at                                      DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by                                      String?
+  deleted_at                                      DateTime?
+  deleted_by                                      String?
+  coda_product_code                               String?              @db.VarChar(72)
+  previous_system_id                              String?              @db.VarChar(30)
+  ChargeDocuments                                 ChargeDocuments[]
+  ChargeCategories                                ChargeCategories?    @relation(fields: [charge_category_id], references: [id])
+  Currencies_Charges_currency_buy_idToCurrencies  Currencies?          @relation("Charges_currency_buy_idToCurrencies", fields: [currency_buy_id], references: [id])
+  Currencies_Charges_currency_sell_idToCurrencies Currencies?          @relation("Charges_currency_sell_idToCurrencies", fields: [currency_sell_id], references: [id])
+  Taxes_Charges_tax_vat_idToTaxes                 Taxes?               @relation("Charges_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_Charges_tax_wht_idToTaxes                 Taxes?               @relation("Charges_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+  Units                                           Units?               @relation(fields: [unit_id], references: [id], onDelete: Restrict)
+  LeadCharges                                     LeadCharges[]
+  OpportunityCharges                              OpportunityCharges[]
+  PriceBookDetails                                PriceBookDetails[]
+  ProjectMappings                                 ProjectMappings[]
+  TBillingDetails                                 TBillingDetails[]
+  TBudgetDetails                                  TBudgetDetails[]
+  TProformaDetails                                TProformaDetails[]
+}
+
+model Cities {
+  id                                          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  city_code                                   String      @db.VarChar(5)
+  city_name                                   String      @db.VarChar(100)
+  country_id                                  String?     @db.Uuid
+  created_at                                  DateTime    @default(now()) @db.Timestamp(0)
+  created_by                                  String      @db.VarChar(255)
+  updated_at                                  DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by                                  String?
+  deleted_at                                  DateTime?
+  deleted_by                                  String?
+  Branches                                    Branches[]
+  Customers_Customers_billing_city_idToCities Customers[] @relation("Customers_billing_city_idToCities")
+  Customers_Customers_city_idToCities         Customers[] @relation("Customers_city_idToCities")
+  Employee                                    Employee[]
+  Leads                                       Leads[]
+  Vendors_Vendors_billing_city_idToCities     Vendors[]   @relation("Vendors_billing_city_idToCities")
+  Vendors_Vendors_city_idToCities             Vendors[]   @relation("Vendors_city_idToCities")
+}
+
+model Companies {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_code       String               @db.VarChar(255)
+  company_name       String               @db.VarChar
+  company_group_id   String?              @db.Uuid
+  coda_cmpcode       String?              @db.VarChar(12)
+  created_at         DateTime             @default(now()) @db.Timestamp(0)
+  created_by         String               @db.VarChar(255)
+  updated_at         DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  is_default         Int                  @default(0) @db.SmallInt
+  BankMappings       BankMappings[]
+  BranchApproval     BranchApproval[]
+  Branches           Branches[]
+  ChargeGroups       ChargeGroups[]
+  CompanyGroups      CompanyGroups?       @relation(fields: [company_group_id], references: [id])
+  CompanyAccessGroup CompanyAccessGroup[]
+  CompanyPositions   CompanyPositions[]
+  Currencies         Currencies[]
+  Customers          Customers[]
+  Departements       Departements[]
+  Employee           Employee[]
+  PeriodMaintenances PeriodMaintenances[]
+  ProjectGroups      ProjectGroups[]
+  Projects           Projects[]
+  SetupAccountCoda   SetupAccountCoda[]
+  TBillings          TBillings[]
+  TBudgets           TBudgets[]
+  TProformas         TProformas[]
+  Taxes              Taxes[]
+  Vendors            Vendors[]
+}
+
+model CompanyAccessGroup {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id String?    @db.Uuid
+  branch_id  String?    @db.Uuid
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  created_by String     @db.VarChar(255)
+  updated_at DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  group_id   String?    @db.Uuid
+  user_id    String?    @db.Uuid
+  Branches   Branches?  @relation(fields: [branch_id], references: [id])
+  Companies  Companies? @relation(fields: [company_id], references: [id])
+  Groups     Groups?    @relation(fields: [group_id], references: [id])
+  UserAuth   UserAuth?  @relation(fields: [user_id], references: [id])
+}
+
+model CompanyGroups {
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_group_code String      @db.VarChar(255)
+  company_group_name String      @db.VarChar(255)
+  created_at         DateTime    @default(now()) @db.Timestamp(0)
+  created_by         String      @db.VarChar(255)
+  updated_at         DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  Companies          Companies[]
+}
+
+model CompanyPositions {
+  id                                      String                                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_position_code                   String                                    @db.VarChar(255)
+  company_position_name                   String                                    @db.VarChar(255)
+  m_company_id                            String?                                   @db.Uuid
+  m_departemen_id                         String?                                   @db.Uuid
+  office_flag                             OfficeFlagBranch                          @default(HO)
+  created_at                              DateTime                                  @default(now()) @db.Timestamp(0)
+  created_by                              String                                    @db.VarChar(255)
+  updated_at                              DateTime?                                 @default(now()) @db.Timestamp(0)
+  updated_by                              String?
+  deleted_at                              DateTime?
+  deleted_by                              String?
+  approval_server_request_flag            Boolean?                                  @default(false)
+  fup_server_request_flag                 Boolean?                                  @default(false)
+  ApprovalHistories                       ApprovalHistories[]
+  BranchApproval                          BranchApproval[]
+  BranchProjectMonitoringCompanyPositions BranchProjectMonitoringCompanyPositions[]
+  Companies                               Companies?                                @relation(fields: [m_company_id], references: [id])
+  Departements                            Departements?                             @relation(fields: [m_departemen_id], references: [id])
+  Employee                                Employee[]
+}
+
+model Countries {
+  id                                                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  country_code                                      String           @db.VarChar(2)
+  country_name                                      String           @db.VarChar(100)
+  created_at                                        DateTime         @default(now()) @db.Timestamp(0)
+  created_by                                        String           @db.VarChar(255)
+  updated_at                                        DateTime?        @default(now()) @db.Timestamp(0)
+  updated_by                                        String?
+  deleted_at                                        DateTime?
+  deleted_by                                        String?
+  phone_code                                        String?          @db.VarChar(100)
+  CustomerFaxes                                     CustomerFaxes[]
+  CustomerPhones                                    CustomerPhones[]
+  Customers_Customers_billing_country_idToCountries Customers[]      @relation("Customers_billing_country_idToCountries")
+  Customers_Customers_country_idToCountries         Customers[]      @relation("Customers_country_idToCountries")
+  Leads                                             Leads[]
+  VendorFaxes                                       VendorFaxes[]
+  VendorPhones                                      VendorPhones[]
+  Vendors_Vendors_billing_country_idToCountries     Vendors[]        @relation("Vendors_billing_country_idToCountries")
+  Vendors_Vendors_country_idToCountries             Vendors[]        @relation("Vendors_country_idToCountries")
+}
+
+model Currencies {
+  id                                           String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                                   String?              @db.Uuid
+  currency_code                                String               @db.VarChar(3)
+  currency_name                                String               @db.VarChar(50)
+  is_base_currency                             Int                  @default(0) @db.SmallInt
+  is_active                                    Int                  @default(0) @db.SmallInt
+  created_at                                   DateTime             @default(now()) @db.Timestamp(0)
+  created_by                                   String               @db.VarChar(255)
+  updated_at                                   DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by                                   String?
+  deleted_at                                   DateTime?
+  deleted_by                                   String?
+  BankMappings                                 BankMappings[]
+  Charges_Charges_currency_buy_idToCurrencies  Charges[]            @relation("Charges_currency_buy_idToCurrencies")
+  Charges_Charges_currency_sell_idToCurrencies Charges[]            @relation("Charges_currency_sell_idToCurrencies")
+  Companies                                    Companies?           @relation(fields: [company_id], references: [id])
+  ExchangeRates                                ExchangeRates[]
+  OpportunityCharges                           OpportunityCharges[]
+  PriceBooks                                   PriceBooks[]
+  QuotationCharges                             QuotationCharges[]
+  TBillingDetails                              TBillingDetails[]
+  TBillingJurnals                              TBillingJurnals[]
+  TBillings                                    TBillings[]
+  TBudgetDetails                               TBudgetDetails[]
+  TBudgets                                     TBudgets[]
+  TProformaDetails                             TProformaDetails[]
+  TProformaJurnals                             TProformaJurnals[]
+  TProformas                                   TProformas[]
+}
+
+model CustomerAnalytics {
+  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id         String?    @db.Uuid
+  asset_type          String?    @db.VarChar(50)
+  reputation_type     String?    @db.VarChar(50)
+  reputation_note     String?
+  industry_trend      String?    @db.VarChar(50)
+  industry_trend_note String?
+  volume              String?    @db.VarChar(50)
+  credit_term         Int?       @db.SmallInt
+  asset_ownership     String?    @db.VarChar(50)
+  asset_note          String?
+  created_at          DateTime   @default(now()) @db.Timestamp(0)
+  created_by          String     @db.VarChar(255)
+  updated_at          DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  liquidity_type      String?    @db.VarChar(50)
+  Customers           Customers? @relation(fields: [customer_id], references: [id])
+}
+
+model CustomerContacts {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id               String?                     @db.Uuid
+  salutation                Salutation?
+  customer_contact_name     String?                     @db.VarChar(100)
+  contact_id_no             String?                     @db.VarChar(100)
+  contact_id_url            String?                     @db.VarChar
+  email                     String?                     @db.VarChar(100)
+  phone_no                  String?                     @db.VarChar(100)
+  mobile_no                 String?                     @db.VarChar(100)
+  is_primary                Int                         @default(0) @db.SmallInt
+  created_at                DateTime                    @default(now()) @db.Timestamp(0)
+  created_by                String                      @db.VarChar(255)
+  updated_at                DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_by                String?
+  deleted_at                DateTime?
+  deleted_by                String?
+  flag_email_invoice        Boolean?                    @default(false)
+  job_title                 String?                     @db.VarChar(100)
+  previous_system_id        String?                     @db.VarChar(30)
+  Customers                 Customers?                  @relation(fields: [customer_id], references: [id])
+  JobOrders                 JobOrders[]
+  Leads                     Leads[]
+  SalesActivityParticipants SalesActivityParticipants[]
+}
+
+model CustomerFaxes {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  country_id  String?    @db.Uuid
+  fax_no      String?    @db.VarChar(100)
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  created_by  String     @db.VarChar(255)
+  updated_at  DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  customer_id String?    @db.Uuid
+  Countries   Countries? @relation(fields: [country_id], references: [id])
+}
+
+model CustomerLegalDocuments {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  customer_id         String?         @db.Uuid
+  legal_document_id   String?         @db.Uuid
+  document_no         String?         @db.VarChar(100)
+  validity_start_date DateTime?       @db.Date
+  validity_end_date   DateTime?       @db.Date
+  document_url        String?
+  created_at          DateTime        @default(now()) @db.Timestamp(0)
+  created_by          String          @db.VarChar(255)
+  updated_at          DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  Customers           Customers?      @relation(fields: [customer_id], references: [id])
+  LegalDocuments      LegalDocuments? @relation(fields: [legal_document_id], references: [id])
+}
+
+model CustomerPhones {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  country_id   String?    @db.Uuid
+  phone_no     String?    @db.VarChar(100)
+  extension_no String?    @db.VarChar(10)
+  created_at   DateTime   @default(now()) @db.Timestamp(0)
+  created_by   String     @db.VarChar(255)
+  updated_at   DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by   String?
+  deleted_at   DateTime?
+  deleted_by   String?
+  customer_id  String?    @db.Uuid
+  Countries    Countries? @relation(fields: [country_id], references: [id])
+}
+
+model Customers {
+  id                                                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                                        String?                  @db.Uuid
+  branch_id                                         String?                  @db.Uuid
+  business_entity_id                                String?                  @db.Uuid
+  business_permit_id                                String?                  @db.Uuid
+  customer_code                                     String?                  @unique @db.VarChar(30)
+  customer_name                                     String?                  @db.VarChar(100)
+  customer_address                                  String?
+  country_id                                        String?                  @db.Uuid
+  city_id                                           String?                  @db.Uuid
+  billing_name                                      String?                  @db.VarChar(100)
+  billing_address                                   String?
+  billing_country_id                                String?                  @db.Uuid
+  billing_city_id                                   String?                  @db.Uuid
+  email                                             String?                  @db.VarChar(100)
+  website                                           String?                  @db.VarChar(100)
+  tax_registration_no                               String?                  @db.VarChar(100)
+  credit_term                                       Int?                     @db.SmallInt
+  credit_limit                                      Int?
+  coa                                               String?                  @db.VarChar(72)
+  coa_reimburse                                     String?                  @db.VarChar(72)
+  coda_customer_code                                String?                  @db.VarChar(72)
+  customer_id                                       String?                  @db.Uuid
+  currency_conversion_flag                          Int                      @default(1) @db.SmallInt
+  status                                            Int                      @default(0) @db.SmallInt
+  last_approval_sequence                            Int                      @default(0) @db.SmallInt
+  created_at                                        DateTime                 @default(now()) @db.Timestamp(0)
+  created_by                                        String                   @db.VarChar(255)
+  updated_at                                        DateTime?                @default(now()) @db.Timestamp(0)
+  updated_by                                        String?
+  deleted_at                                        DateTime?
+  deleted_by                                        String?
+  setup_coa_id                                      String?                  @db.Uuid
+  billing_zipcode                                   String?                  @db.VarChar(6)
+  idtku_no                                          String?                  @db.VarChar(6)
+  tax_registration_address                          String?
+  tax_registration_name                             String?                  @db.VarChar(100)
+  zipcode                                           String?                  @db.VarChar(6)
+  customer_type                                     String?                  @db.VarChar(50)
+  billing_latitude                                  String?
+  billing_longitude                                 String?
+  latitude                                          String?
+  longitude                                         String?
+  previous_system_id                                String?                  @db.VarChar(30)
+  Branches_Branches_customer_assigned_idToCustomers Branches[]               @relation("Branches_customer_assigned_idToCustomers")
+  CustomerAnalytics                                 CustomerAnalytics[]
+  CustomerContacts                                  CustomerContacts[]
+  CustomerLegalDocuments                            CustomerLegalDocuments[]
+  Cities_Customers_billing_city_idToCities          Cities?                  @relation("Customers_billing_city_idToCities", fields: [billing_city_id], references: [id])
+  Countries_Customers_billing_country_idToCountries Countries?               @relation("Customers_billing_country_idToCountries", fields: [billing_country_id], references: [id])
+  Branches_Customers_branch_idToBranches            Branches?                @relation("Customers_branch_idToBranches", fields: [branch_id], references: [id])
+  BusinessEntities                                  BusinessEntities?        @relation(fields: [business_entity_id], references: [id])
+  BusinessPermits                                   BusinessPermits?         @relation(fields: [business_permit_id], references: [id])
+  Cities_Customers_city_idToCities                  Cities?                  @relation("Customers_city_idToCities", fields: [city_id], references: [id])
+  Companies                                         Companies?               @relation(fields: [company_id], references: [id])
+  Countries_Customers_country_idToCountries         Countries?               @relation("Customers_country_idToCountries", fields: [country_id], references: [id])
+  Customers                                         Customers?               @relation("CustomersToCustomers", fields: [customer_id], references: [id])
+  other_Customers                                   Customers[]              @relation("CustomersToCustomers")
+  SetupCOA                                          SetupCOA?                @relation(fields: [setup_coa_id], references: [id])
+  JobOrders                                         JobOrders[]
+  Leads                                             Leads[]
+  Opportunities                                     Opportunities[]
+  Projects                                          Projects[]
+  Quotations                                        Quotations[]
+  TBillings                                         TBillings[]
+  TBudgets                                          TBudgets[]
+  TProformas                                        TProformas[]
+}
+
+model Departements {
+  id                      String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  departement_code        String             @db.VarChar(255)
+  departement_name        String             @db.VarChar(255)
+  departement_description String?
+  m_company_id            String?            @db.Uuid
+  coda_el2_code           String?            @db.VarChar(72)
+  created_at              DateTime           @default(now()) @db.Timestamp(0)
+  created_by              String             @db.VarChar(255)
+  updated_at              DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by              String?
+  deleted_at              DateTime?
+  deleted_by              String?
+  BranchApproval          BranchApproval[]
+  CompanyPositions        CompanyPositions[]
+  Companies               Companies?         @relation(fields: [m_company_id], references: [id])
+  Employee                Employee[]
+  JobOrders               JobOrders[]
+  ProjectMappings         ProjectMappings[]
+  TBillingDetails         TBillingDetails[]
+  TBudgetDetails          TBudgetDetails[]
+  TProformaDetails        TProformaDetails[]
+}
+
+model DocumentTypes {
+  id                               String                             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  document_type_code               String?                            @db.VarChar(50)
+  document_type_name               String?                            @db.VarChar(100)
+  mandatory_send_email             Boolean                            @default(false)
+  created_at                       DateTime                           @default(now()) @db.Timestamp(0)
+  created_by                       String                             @db.VarChar(255)
+  deleted_at                       DateTime?
+  deleted_by                       String?
+  updated_at                       DateTime?                          @default(now()) @db.Timestamp(0)
+  updated_by                       String?
+  mandatory_opty_flag              Boolean                            @default(false)
+  BranchProjectMonitoringDocuments BranchProjectMonitoringDocuments[]
+  JobOrderMonitoringDocuments      JobOrderMonitoringDocuments[]
+  OpportunityDocuments             OpportunityDocuments[]
+  TBillingDocuments                TBillingDocuments[]
+}
+
+model Employee {
+  id                                                         String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_code                                              String
+  employee_name                                              String
+  employee_email                                             String
+  employee_address                                           String?
+  city_id                                                    String?                     @db.Uuid
+  phone_no                                                   String?                     @db.VarChar(100)
+  mobile_no                                                  String?                     @db.VarChar(100)
+  company_id                                                 String?                     @db.Uuid
+  branch_id                                                  String?                     @db.Uuid
+  departement_id                                             String?                     @db.Uuid
+  advance_flag                                               Int?                        @default(0) @db.SmallInt
+  advance_acct_code                                          String?                     @db.VarChar(72)
+  coda_employee_code                                         String?                     @db.VarChar(72)
+  company_position_id                                        String?                     @db.Uuid
+  created_at                                                 DateTime                    @default(now()) @db.Timestamp(0)
+  created_by                                                 String                      @db.VarChar(255)
+  updated_at                                                 DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_by                                                 String?
+  deleted_at                                                 DateTime?
+  deleted_by                                                 String?
+  pre_sales_flag                                             Boolean?                    @default(false)
+  Branches                                                   Branches?                   @relation(fields: [branch_id], references: [id])
+  Cities                                                     Cities?                     @relation(fields: [city_id], references: [id])
+  Companies                                                  Companies?                  @relation(fields: [company_id], references: [id])
+  CompanyPositions                                           CompanyPositions?           @relation(fields: [company_position_id], references: [id])
+  Departements                                               Departements?               @relation(fields: [departement_id], references: [id])
+  JobOrders                                                  JobOrders[]
+  Leads                                                      Leads[]
+  MappingBranchBillingTypes                                  MappingBranchBillingTypes[]
+  Opportunities_Opportunities_employee_owner_idToEmployee    Opportunities[]             @relation("Opportunities_employee_owner_idToEmployee")
+  Opportunities_Opportunities_employee_presales_idToEmployee Opportunities[]             @relation("Opportunities_employee_presales_idToEmployee")
+  SalesActivityParticipants                                  SalesActivityParticipants[]
+  SalesSchedules                                             SalesSchedules[]
+  TBillings                                                  TBillings[]
+  TBudgets                                                   TBudgets[]
+  TProformas                                                 TProformas[]
+  UserAuth                                                   UserAuth[]
+}
+
+model ExchangeRates {
+  id                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  currency_id          String?     @db.Uuid
+  effective_start_date DateTime?   @db.Date
+  effective_end_date   DateTime?   @db.Date
+  commercial_rate      Float
+  tax_rate             Float?      @default(0)
+  created_at           DateTime    @default(now()) @db.Timestamp(0)
+  created_by           String      @db.VarChar(255)
+  updated_at           DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+  Currencies           Currencies? @relation(fields: [currency_id], references: [id])
+}
+
+model Groups {
+  id                          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_code                  String               @unique @db.VarChar(255)
+  group_name                  String               @db.VarChar(255)
+  group_description           String?
+  is_superadmin               String?              @default("N") @db.VarChar(1)
+  created_at                  DateTime             @default(now()) @db.Timestamp(0)
+  created_by                  String               @db.VarChar(255)
+  updated_at                  DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by                  String?
+  deleted_at                  DateTime?
+  deleted_by                  String?
+  role_permissions            String?
+  branch_id                   String?              @db.Uuid
+  company_id                  String?              @db.Uuid
+  lookup_access_company_group Boolean?             @default(false)
+  CompanyAccessGroup          CompanyAccessGroup[]
+  MenusGroupAccess            MenusGroupAccess[]
+  UserAuth                    UserAuth[]
+}
+
+model JobOrderBillingPercentages {
+  id                           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_order_id                 String                   @db.Uuid
+  branch_project_monitoring_id String                   @db.Uuid
+  project_monitoring_stage_id  String                   @db.Uuid
+  billing_pct                  Int                      @db.SmallInt
+  description                  String?
+  billing_id                   String?                  @db.Uuid
+  created_at                   DateTime                 @default(now()) @db.Timestamp(0)
+  created_by                   String                   @db.VarChar(255)
+  updated_at                   DateTime?
+  updated_by                   String?
+  deleted_at                   DateTime?
+  deleted_by                   String?
+  billing_instruction_flag     OptionFlag               @default(N)
+  BranchProjectMonitorings     BranchProjectMonitorings @relation(fields: [branch_project_monitoring_id], references: [id])
+  JobOrders                    JobOrders                @relation(fields: [job_order_id], references: [id])
+  ProjectMonitoringStage       ProjectMonitoringStage   @relation(fields: [project_monitoring_stage_id], references: [id])
+}
+
+model JobOrderMonitoringDocuments {
+  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_order_monitoring_id String              @db.Uuid
+  document_type_id        String              @db.Uuid
+  document_file_name      String              @db.VarChar(255)
+  document_url            String              @db.VarChar(255)
+  created_at              DateTime            @default(now()) @db.Timestamp(0)
+  created_by              String              @db.VarChar(255)
+  updated_at              DateTime?
+  updated_by              String?
+  deleted_at              DateTime?
+  deleted_by              String?
+  DocumentTypes           DocumentTypes       @relation(fields: [document_type_id], references: [id])
+  JobOrderMonitorings     JobOrderMonitorings @relation(fields: [job_order_monitoring_id], references: [id])
+}
+
+model JobOrderMonitorings {
+  id                          String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_order_id                String                        @db.Uuid
+  project_monitoring_stage_id String                        @db.Uuid
+  description                 String?
+  created_at                  DateTime                      @default(now()) @db.Timestamp(0)
+  created_by                  String                        @db.VarChar(255)
+  updated_at                  DateTime?
+  updated_by                  String?
+  deleted_at                  DateTime?
+  deleted_by                  String?
+  JobOrderMonitoringDocuments JobOrderMonitoringDocuments[]
+  JobOrders                   JobOrders                     @relation(fields: [job_order_id], references: [id])
+  ProjectMonitoringStage      ProjectMonitoringStage        @relation(fields: [project_monitoring_stage_id], references: [id])
+}
+
+model JobOrders {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id                  String                       @db.Uuid
+  job_order_no               String                       @db.VarChar(30)
+  job_order_date             DateTime                     @db.Date
+  order_reff_no              String                       @db.VarChar(150)
+  charge_service_id          String                       @db.Uuid
+  opportunity_id             String                       @db.Uuid
+  quotation_id               String                       @db.Uuid
+  customer_id                String                       @db.Uuid
+  customer_contact_id        String                       @db.Uuid
+  employee_owner_id          String                       @db.Uuid
+  department_id              String                       @db.Uuid
+  project_id                 String?                      @db.Uuid
+  expected_closed_date       DateTime                     @db.Date
+  description                String?
+  status                     MonitoringStatus             @default(N)
+  created_at                 DateTime                     @default(now()) @db.Timestamp(0)
+  created_by                 String                       @db.VarChar(255)
+  updated_at                 DateTime?                    @default(now()) @db.Timestamp(0)
+  updated_by                 String?
+  deleted_at                 DateTime?
+  deleted_by                 String?
+  previous_system_id         String?                      @db.VarChar(30)
+  JobOrderBillingPercentages JobOrderBillingPercentages[]
+  JobOrderMonitorings        JobOrderMonitorings[]
+  Branches                   Branches                     @relation(fields: [branch_id], references: [id])
+  ChargeServices             ChargeServices               @relation(fields: [charge_service_id], references: [id])
+  CustomerContacts           CustomerContacts             @relation(fields: [customer_contact_id], references: [id])
+  Customers                  Customers                    @relation(fields: [customer_id], references: [id])
+  Departements               Departements                 @relation(fields: [department_id], references: [id])
+  Employee                   Employee                     @relation(fields: [employee_owner_id], references: [id])
+  Opportunities              Opportunities                @relation(fields: [opportunity_id], references: [id])
+  Projects                   Projects?                    @relation(fields: [project_id], references: [id])
+  Quotations                 Quotations                   @relation(fields: [quotation_id], references: [id])
+}
+
+model JobTitles {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_title_code String?   @db.VarChar(30)
+  job_title_name String?   @db.VarChar(100)
+  created_at     DateTime  @default(now()) @db.Timestamp(0)
+  created_by     String    @db.VarChar(255)
+  updated_at     DateTime? @default(now()) @db.Timestamp(0)
+  updated_by     String?
+  deleted_at     DateTime?
+  deleted_by     String?
+}
+
+model LeadCharges {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lead_id    String    @db.Uuid
+  charge_id  String    @db.Uuid
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  created_by String    @db.VarChar(255)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  Charges    Charges   @relation(fields: [charge_id], references: [id])
+  Leads      Leads     @relation(fields: [lead_id], references: [id])
+}
+
+model LeadSources {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source_name        String    @db.VarChar(50)
+  created_at         DateTime  @default(now()) @db.Timestamp(0)
+  created_by         String    @db.VarChar(255)
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  previous_system_id String?   @db.VarChar(30)
+  Leads              Leads[]
+}
+
+model LeadStatuses {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  status_name String     @db.VarChar(50)
+  description String
+  is_default  OptionFlag @default(N)
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  created_by  String     @db.VarChar(255)
+  updated_at  DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  Leads       Leads[]
+}
+
+model Leads {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id           String?           @db.Uuid
+  employee_lead_id    String?           @db.Uuid
+  salutation          Salutation?
+  lead_name           String            @db.VarChar(100)
+  email               String?           @db.VarChar(50)
+  phone               String?           @db.VarChar(50)
+  mobile_phone        String            @db.VarChar(50)
+  website             String?           @db.VarChar(50)
+  lead_type           EnumAccountType
+  company_name        String            @db.VarChar(100)
+  business_permit_id  String?           @db.Uuid
+  lead_source_id      String?           @db.Uuid
+  unqualified_remarks String?
+  customer_id         String?           @db.Uuid
+  customer_contact_id String?           @db.Uuid
+  opportunity_id      String?           @db.Uuid
+  created_at          DateTime          @default(now()) @db.Timestamp(0)
+  created_by          String            @db.VarChar(255)
+  updated_at          DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  address             String?
+  city_id             String?           @db.Uuid
+  country_id          String?           @db.Uuid
+  description         String?
+  job_title           String?           @db.VarChar(100)
+  lead_status_id      String?           @db.Uuid
+  source_lead_id      String?           @db.Uuid
+  zipcode             String?           @db.VarChar(6)
+  previous_system_id  String?           @db.VarChar(30)
+  LeadCharges         LeadCharges[]
+  Branches            Branches?         @relation(fields: [branch_id], references: [id])
+  BusinessPermits     BusinessPermits?  @relation(fields: [business_permit_id], references: [id])
+  Cities              Cities?           @relation(fields: [city_id], references: [id])
+  Countries           Countries?        @relation(fields: [country_id], references: [id])
+  CustomerContacts    CustomerContacts? @relation(fields: [customer_contact_id], references: [id])
+  Customers           Customers?        @relation(fields: [customer_id], references: [id])
+  Employee            Employee?         @relation(fields: [employee_lead_id], references: [id])
+  LeadSources         LeadSources?      @relation(fields: [lead_source_id], references: [id])
+  LeadStatuses        LeadStatuses?     @relation(fields: [lead_status_id], references: [id])
+  Opportunities       Opportunities?    @relation(fields: [opportunity_id], references: [id])
+  SourceInfos         SourceInfos?      @relation(fields: [source_lead_id], references: [id])
+  SalesSchedules      SalesSchedules[]
+}
+
+model LegalDocuments {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  legal_document_code    String?                  @db.VarChar(30)
+  legal_document_name    String?                  @db.VarChar(100)
+  mandatory_for_customer Int                      @default(0) @db.SmallInt
+  mandatory_for_vendor   Int                      @default(0) @db.SmallInt
+  created_at             DateTime                 @default(now()) @db.Timestamp(0)
+  created_by             String                   @db.VarChar(255)
+  updated_at             DateTime?                @default(now()) @db.Timestamp(0)
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  CustomerLegalDocuments CustomerLegalDocuments[]
+  VendorLegalDocuments   VendorLegalDocuments[]
+}
+
+model Log {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username      String   @db.VarChar(100)
+  email         String   @db.VarChar(100)
+  action        String   @db.VarChar(100)
+  query         String
+  before_update String?
+  after_update  String
+  is_success    Boolean
+  created_at    DateTime @default(now()) @db.Timestamp(0)
+}
+
+model LossRemarks {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  loss_remarks  String          @db.VarChar(50)
+  description   String
+  created_at    DateTime        @default(now()) @db.Timestamp(0)
+  created_by    String          @db.VarChar(255)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by    String?
+  deleted_at    DateTime?
+  deleted_by    String?
+  Opportunities Opportunities[]
+}
+
+model MappingBranchBillingTypes {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id       String?       @db.Uuid
+  billing_type_id String?       @db.Uuid
+  employee_id     String?       @db.Uuid
+  created_at      DateTime      @default(now()) @db.Timestamp(0)
+  created_by      String        @db.VarChar(255)
+  deleted_at      DateTime?
+  deleted_by      String?
+  updated_at      DateTime?     @default(now()) @db.Timestamp(0)
+  updated_by      String?
+  BillingTypes    BillingTypes? @relation(fields: [billing_type_id], references: [id])
+  Branches        Branches?     @relation(fields: [branch_id], references: [id])
+  Employee        Employee?     @relation(fields: [employee_id], references: [id])
+}
+
+model MenuAccess {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  menu_id    String    @db.Uuid
+  name       String    @db.VarChar(255)
+  status     Int       @default(0) @db.SmallInt
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  created_by String    @db.VarChar(255)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  Menus      Menus     @relation(fields: [menu_id], references: [id])
+}
+
+model Menus {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  menu_code        String             @unique
+  menu_name        String             @db.VarChar(255)
+  menu_description String?
+  path             String             @default("#") @db.VarChar(255)
+  parent_menu      String?            @db.VarChar(50)
+  order_no         Int                @db.SmallInt
+  icon             String?            @db.VarChar
+  is_active        OptionFlag         @default(N)
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  created_by       String             @db.VarChar(255)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by       String?
+  deleted_at       DateTime?
+  deleted_by       String?
+  application_code String?            @db.VarChar(100)
+  MenuAccess       MenuAccess[]
+  MenusGroupAccess MenusGroupAccess[]
+}
+
+model MenusGroupAccess {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  menu_id     String    @db.Uuid
+  group_id    String    @db.Uuid
+  permissions String
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  created_by  String    @db.VarChar(255)
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_by  String?
+  deleted_at  DateTime?
+  deleted_by  String?
+  Groups      Groups    @relation(fields: [group_id], references: [id])
+  Menus       Menus     @relation(fields: [menu_id], references: [id])
+}
+
+model Modules {
+  id                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alias_name                 String              @db.VarChar(255)
+  table_name                 String              @db.VarChar(255)
+  field_name_code            String              @db.VarChar(255)
+  created_at                 DateTime            @default(now()) @db.Timestamp(0)
+  created_by                 String              @db.VarChar(255)
+  updated_at                 DateTime?           @default(now()) @db.Timestamp(0)
+  updated_by                 String?
+  deleted_at                 DateTime?
+  deleted_by                 String?
+  flag_auto_numbering        OptionFlag          @default(N)
+  application_code           String?             @db.VarChar(100)
+  additional_config_approval String?
+  config_email               String?
+  ApprovalHistories          ApprovalHistories[]
+  AutoNumbering              AutoNumbering[]
+  BranchApproval             BranchApproval[]
+  Permissions                Permissions[]
+}
+
+model Opportunities {
+  id                                                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id                                             String?                @db.Uuid
+  opportunity_type_id                                   String?                @db.Uuid
+  opportunity_name                                      String                 @db.VarChar(100)
+  description                                           String?
+  opportunity_date                                      DateTime?              @db.Date
+  expected_closed_date                                  DateTime?              @db.Date
+  customer_id                                           String?                @db.Uuid
+  project_id                                            String?                @db.Uuid
+  business_type                                         BusinessType           @default(NB)
+  payment_term_id                                       String?                @db.Uuid
+  employee_presales_id                                  String?                @db.Uuid
+  drive_link                                            String?
+  sales_stage_id                                        String?                @db.Uuid
+  loss_remark_id                                        String?                @db.Uuid
+  loss_description                                      String?
+  created_at                                            DateTime               @default(now()) @db.Timestamp(0)
+  created_by                                            String                 @db.VarChar(255)
+  updated_at                                            DateTime?              @default(now()) @db.Timestamp(0)
+  updated_by                                            String?
+  deleted_at                                            DateTime?
+  deleted_by                                            String?
+  opportunity_source_id                                 String?                @db.Uuid
+  employee_owner_id                                     String?                @db.Uuid
+  estimated_cogs                                        Decimal                @default(0) @db.Decimal(16, 4)
+  estimated_gp_amount                                   Decimal                @default(0) @db.Decimal(16, 4)
+  estimated_gp_pct                                      Decimal                @default(0) @db.Decimal(4, 2)
+  last_approval_sequence                                Int                    @default(0) @db.SmallInt
+  last_quotation_id                                     String?                @db.Uuid
+  status                                                ApprovalStatus         @default(D)
+  tax_vat_id                                            String?                @db.Uuid
+  charge_service_id                                     String?                @db.Uuid
+  opportunity_po_number                                 String?                @db.VarChar(50)
+  opportunity_document_name                             String?                @db.VarChar(100)
+  opportunity_document_type                             String?                @db.VarChar
+  opportunity_document_url                              String?                @db.VarChar
+  previous_system_id                                    String?                @db.VarChar(30)
+  opportunity_ticket                                    String?                @db.VarChar
+  JobOrders                                             JobOrders[]
+  Leads                                                 Leads[]
+  Branches                                              Branches?              @relation(fields: [branch_id], references: [id])
+  ChargeServices                                        ChargeServices?        @relation(fields: [charge_service_id], references: [id])
+  Customers                                             Customers?             @relation(fields: [customer_id], references: [id])
+  Employee_Opportunities_employee_owner_idToEmployee    Employee?              @relation("Opportunities_employee_owner_idToEmployee", fields: [employee_owner_id], references: [id])
+  Employee_Opportunities_employee_presales_idToEmployee Employee?              @relation("Opportunities_employee_presales_idToEmployee", fields: [employee_presales_id], references: [id])
+  LossRemarks                                           LossRemarks?           @relation(fields: [loss_remark_id], references: [id])
+  SourceInfos                                           SourceInfos?           @relation(fields: [opportunity_source_id], references: [id])
+  OpportunityTypes                                      OpportunityTypes?      @relation(fields: [opportunity_type_id], references: [id])
+  PaymentTerms                                          PaymentTerms?          @relation(fields: [payment_term_id], references: [id])
+  Projects                                              Projects?              @relation(fields: [project_id], references: [id])
+  SalesStages                                           SalesStages?           @relation(fields: [sales_stage_id], references: [id])
+  Taxes                                                 Taxes?                 @relation(fields: [tax_vat_id], references: [id])
+  OpportunityCharges                                    OpportunityCharges[]
+  OpportunityDocuments                                  OpportunityDocuments[]
+  Quotations                                            Quotations[]
+}
+
+model OpportunityCharges {
+  id                     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  opportunity_id         String             @db.Uuid
+  charge_id              String             @db.Uuid
+  qty                    Int
+  currency_id            String             @db.Uuid
+  list_price             Decimal            @db.Decimal(16, 4)
+  sales_price            Decimal            @db.Decimal(16, 4)
+  sales_discount_type    DiscountType?      @default(P)
+  sales_discount_pct     Decimal            @default(0) @db.Decimal(4, 2)
+  sales_discount_amount  Decimal            @default(0) @db.Decimal(16, 4)
+  total_sales_price      Decimal            @db.Decimal(16, 4)
+  buying_price           Decimal            @db.Decimal(16, 4)
+  buying_discount_type   DiscountType?      @default(P)
+  buying_discount_pct    Decimal            @default(0) @db.Decimal(4, 2)
+  buying_discount_amount Decimal            @default(0) @db.Decimal(16, 4)
+  total_buying_price     Decimal            @db.Decimal(16, 4)
+  line_description       String
+  created_at             DateTime           @default(now()) @db.Timestamp(0)
+  created_by             String             @db.VarChar(255)
+  updated_at             DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  is_quotation           Boolean?           @default(false)
+  is_sync                Boolean?           @default(false)
+  previous_system_id     String?            @db.VarChar(30)
+  Charges                Charges            @relation(fields: [charge_id], references: [id])
+  Currencies             Currencies         @relation(fields: [currency_id], references: [id])
+  Opportunities          Opportunities      @relation(fields: [opportunity_id], references: [id])
+  QuotationCharges       QuotationCharges[]
+}
+
+model OpportunityDocuments {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  opportunity_id   String        @db.Uuid
+  document_title   String        @db.VarChar(100)
+  description      String
+  file_url         String
+  created_at       DateTime      @default(now()) @db.Timestamp(0)
+  created_by       String        @db.VarChar(255)
+  updated_at       DateTime?     @default(now()) @db.Timestamp(0)
+  updated_by       String?
+  deleted_at       DateTime?
+  deleted_by       String?
+  document_type_id String        @db.Uuid
+  DocumentTypes    DocumentTypes @relation(fields: [document_type_id], references: [id])
+  Opportunities    Opportunities @relation(fields: [opportunity_id], references: [id])
+}
+
+model OpportunityTypes {
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  opportunity_type_name String          @db.VarChar(50)
+  description           String
+  created_at            DateTime        @default(now()) @db.Timestamp(0)
+  created_by            String          @db.VarChar(255)
+  updated_at            DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+  Opportunities         Opportunities[]
+}
+
+model PaymentTerms {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_term_code String          @db.VarChar(10)
+  payment_term_name String          @db.VarChar(50)
+  due_days          Int             @default(0) @db.SmallInt
+  advance_required  OptionFlag      @default(N)
+  created_at        DateTime        @default(now()) @db.Timestamp(0)
+  created_by        String          @db.VarChar(255)
+  updated_at        DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  Opportunities     Opportunities[]
+  Quotations        Quotations[]
+}
+
+model PeriodMaintenanceDetails {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  period_maintenance_id String?             @db.Uuid
+  period_code           Int?                @db.SmallInt
+  period_description    String?             @db.VarChar(100)
+  period_start_date     DateTime?           @db.Date
+  period_end_date       DateTime?           @db.Date
+  billing_closed        Int?                @default(0) @db.SmallInt
+  estimation_closed     Int?                @default(0) @db.SmallInt
+  financial_closed      Int?                @default(0) @db.SmallInt
+  created_at            DateTime            @default(now()) @db.Timestamp(0)
+  created_by            String              @db.VarChar(255)
+  updated_at            DateTime?           @default(now()) @db.Timestamp(0)
+  updated_by            String?
+  deleted_at            DateTime?
+  deleted_by            String?
+  PeriodMaintenances    PeriodMaintenances? @relation(fields: [period_maintenance_id], references: [id])
+}
+
+model PeriodMaintenances {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id               String?                    @db.Uuid
+  yr_code                  Int                        @db.SmallInt
+  yr_description           String?                    @db.VarChar(100)
+  yr_start_date            DateTime?                  @db.Date
+  yr_end_date              DateTime?                  @db.Date
+  created_at               DateTime                   @default(now()) @db.Timestamp(0)
+  created_by               String                     @db.VarChar(255)
+  updated_at               DateTime?                  @default(now()) @db.Timestamp(0)
+  updated_by               String?
+  deleted_at               DateTime?
+  deleted_by               String?
+  PeriodMaintenanceDetails PeriodMaintenanceDetails[]
+  Companies                Companies?                 @relation(fields: [company_id], references: [id])
+}
+
+model PermissionGroups {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group_id      String      @db.Uuid
+  permission_id String      @db.Uuid
+  status        OptionFlag  @default(N)
+  created_at    DateTime    @default(now()) @db.Timestamp(0)
+  created_by    String      @db.VarChar(255)
+  updated_at    DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by    String?
+  deleted_at    DateTime?
+  deleted_by    String?
+  Permissions   Permissions @relation(fields: [permission_id], references: [id])
+}
+
+model Permissions {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module_id        String?            @db.Uuid
+  permission_name  String?            @db.VarChar(255)
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  created_by       String             @db.VarChar(255)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by       String?
+  deleted_at       DateTime?
+  deleted_by       String?
+  PermissionGroups PermissionGroups[]
+  Modules          Modules?           @relation(fields: [module_id], references: [id])
+}
+
+model PeruriTokens {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token      String?
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  created_by String   @db.VarChar(255)
+}
+
+model PriceBookDetails {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  price_book_id String     @db.Uuid
+  charge_id     String     @db.Uuid
+  selling_price Decimal    @default(0) @db.Decimal(16, 4)
+  created_at    DateTime   @default(now()) @db.Timestamp(0)
+  created_by    String     @db.VarChar(255)
+  updated_at    DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by    String?
+  deleted_at    DateTime?
+  deleted_by    String?
+  Charges       Charges    @relation(fields: [charge_id], references: [id])
+  PriceBooks    PriceBooks @relation(fields: [price_book_id], references: [id])
+}
+
+model PriceBooks {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  price_book_no    String             @db.VarChar(50)
+  price_book_name  String             @db.VarChar(100)
+  description      String
+  is_active        OptionFlag         @default(Y)
+  currency_id      String             @db.Uuid
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  created_by       String             @db.VarChar(255)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by       String?
+  deleted_at       DateTime?
+  deleted_by       String?
+  PriceBookDetails PriceBookDetails[]
+  Currencies       Currencies         @relation(fields: [currency_id], references: [id])
+}
+
+model ProjectGroups {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_group_code  String        @db.VarChar(30)
+  project_group_name  String        @db.VarChar(100)
+  project_group_descr String?
+  created_at          DateTime      @default(now()) @db.Timestamp(0)
+  created_by          String        @db.VarChar(255)
+  updated_at          DateTime?     @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  charge_group_id     String?       @db.Uuid
+  company_id          String?       @db.Uuid
+  ChargeGroups        ChargeGroups? @relation(fields: [charge_group_id], references: [id])
+  Companies           Companies?    @relation(fields: [company_id], references: [id])
+  Projects            Projects[]
+}
+
+model ProjectMappings {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id         String?           @db.Uuid
+  department_id      String?           @db.Uuid
+  charge_category_id String?           @db.Uuid
+  charge_id          String?           @db.Uuid
+  created_at         DateTime          @default(now()) @db.Timestamp(0)
+  created_by         String            @db.VarChar(255)
+  updated_at         DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  ChargeCategories   ChargeCategories? @relation(fields: [charge_category_id], references: [id])
+  Charges            Charges?          @relation(fields: [charge_id], references: [id])
+  Departements       Departements?     @relation(fields: [department_id], references: [id])
+  Projects           Projects?         @relation(fields: [project_id], references: [id])
+}
+
+model ProjectMonitoringStage {
+  id                                  String                                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_monitoring_code             String                                @db.VarChar(50)
+  project_monitoring_stage_name       String                                @db.VarChar(100)
+  created_at                          DateTime                              @default(now()) @db.Timestamp(0)
+  created_by                          String                                @db.VarChar(255)
+  updated_at                          DateTime?
+  updated_by                          String?
+  deleted_at                          DateTime?
+  deleted_by                          String?
+  BranchProjectMonitoringPredecessors BranchProjectMonitoringPredecessors[]
+  BranchProjectMonitorings            BranchProjectMonitorings[]
+  JobOrderBillingPercentages          JobOrderBillingPercentages[]
+  JobOrderMonitorings                 JobOrderMonitorings[]
+}
+
+model Projects {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_code      String             @db.VarChar(30)
+  project_name      String             @db.VarChar(100)
+  project_group_id  String?            @db.Uuid
+  project_descr     String?
+  project_sow       String?
+  customer_owner_id String?            @db.Uuid
+  coda_project_code String?            @db.VarChar(72)
+  created_at        DateTime           @default(now()) @db.Timestamp(0)
+  created_by        String             @db.VarChar(255)
+  updated_at        DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  status            EProjectStatus?
+  company_id        String?            @db.Uuid
+  JobOrders         JobOrders[]
+  Opportunities     Opportunities[]
+  ProjectMappings   ProjectMappings[]
+  Companies         Companies?         @relation(fields: [company_id], references: [id])
+  Customers         Customers?         @relation(fields: [customer_owner_id], references: [id])
+  ProjectGroups     ProjectGroups?     @relation(fields: [project_group_id], references: [id])
+  TBillingDetails   TBillingDetails[]
+  TBudgetDetails    TBudgetDetails[]
+  TProformaDetails  TProformaDetails[]
+}
+
+model QuotationCharges {
+  id                                       String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quotation_id                             String              @db.Uuid
+  opportunity_charge_id                    String?             @db.Uuid
+  charge_id                                String              @db.Uuid
+  activity_flag                            EActivityFlag
+  qty                                      Int
+  currency_id                              String              @db.Uuid
+  unit_price                               Decimal             @db.Decimal(16, 4)
+  discount_type                            DiscountType        @default(P)
+  discount_pct                             Decimal             @db.Decimal(4, 2)
+  discount_amount                          Decimal             @db.Decimal(16, 4)
+  total_price                              Decimal             @db.Decimal(16, 4)
+  line_description                         String
+  tax_vat_id                               String?             @db.Uuid
+  tax_wht_id                               String?             @db.Uuid
+  created_at                               DateTime            @default(now()) @db.Timestamp(0)
+  created_by                               String              @db.VarChar(255)
+  updated_at                               DateTime?           @default(now()) @db.Timestamp(0)
+  updated_by                               String?
+  deleted_at                               DateTime?
+  deleted_by                               String?
+  grand_total                              Decimal             @default(0) @db.Decimal(16, 4)
+  previous_system_id                       String?             @db.VarChar(30)
+  Currencies                               Currencies          @relation(fields: [currency_id], references: [id])
+  OpportunityCharges                       OpportunityCharges? @relation(fields: [opportunity_charge_id], references: [id])
+  Quotations                               Quotations          @relation(fields: [quotation_id], references: [id])
+  Taxes_QuotationCharges_tax_vat_idToTaxes Taxes?              @relation("QuotationCharges_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_QuotationCharges_tax_wht_idToTaxes Taxes?              @relation("QuotationCharges_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+}
+
+model QuotationDocuments {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quotation_id   String     @db.Uuid
+  document_title String     @db.VarChar(100)
+  description    String
+  file_url       String
+  created_at     DateTime   @default(now()) @db.Timestamp(0)
+  created_by     String     @db.VarChar(255)
+  updated_at     DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by     String?
+  deleted_at     DateTime?
+  deleted_by     String?
+  Quotations     Quotations @relation(fields: [quotation_id], references: [id])
+}
+
+model Quotations {
+  id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id             String               @db.Uuid
+  opportunity_id        String               @db.Uuid
+  quotation_no          String               @db.VarChar(255)
+  quotation_name        String               @db.VarChar(255)
+  quotation_date        DateTime             @db.Date
+  quotation_expiry_date DateTime             @db.Date
+  customer_id           String               @db.Uuid
+  description           String
+  customer_contact_id   String               @db.Uuid
+  contact_email         String?              @db.VarChar(50)
+  contact_phone         String?              @db.VarChar(25)
+  contact_fax           String?              @db.VarChar(25)
+  language              Language             @default(Ina)
+  payment_term_id       String               @db.Uuid
+  billing_name          String?              @db.VarChar(100)
+  billing_address       String?
+  billing_city_id       String?              @db.Uuid
+  billing_country_id    String?              @db.Uuid
+  billing_zipcode       String?              @db.VarChar(6)
+  billing_longitude     String?
+  billing_latitude      String?
+  shipping_name         String?              @db.VarChar(100)
+  shipping_address      String?
+  shipping_city_id      String?              @db.Uuid
+  shipping_country_id   String?              @db.Uuid
+  shipping_zipcode      String?              @db.VarChar(6)
+  shipping_longitude    String?
+  shipping_latitude     String?
+  terms_conditions      String?
+  created_at            DateTime             @default(now()) @db.Timestamp(0)
+  created_by            String               @db.VarChar(255)
+  deleted_at            DateTime?
+  deleted_by            String?
+  updated_at            DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by            String?
+  previous_system_id    String?              @db.VarChar(30)
+  JobOrders             JobOrders[]
+  QuotationCharges      QuotationCharges[]
+  QuotationDocuments    QuotationDocuments[]
+  Branches              Branches             @relation(fields: [branch_id], references: [id])
+  Customers             Customers            @relation(fields: [customer_id], references: [id])
+  Opportunities         Opportunities        @relation(fields: [opportunity_id], references: [id])
+  PaymentTerms          PaymentTerms         @relation(fields: [payment_term_id], references: [id])
+}
+
+model SalesActivities {
+  id                        String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module_id                 String                      @db.Uuid
+  item_id                   String                      @db.Uuid
+  activity_date             DateTime                    @default(now()) @db.Date
+  sales_activity_type_id    String                      @db.Uuid
+  subject                   String                      @db.VarChar(50)
+  description               String
+  created_at                DateTime                    @default(now()) @db.Timestamp(0)
+  created_by                String                      @db.VarChar(255)
+  updated_at                DateTime?                   @default(now()) @db.Timestamp(0)
+  updated_by                String?
+  deleted_at                DateTime?
+  deleted_by                String?
+  SalesActivityTypes        SalesActivityTypes          @relation(fields: [sales_activity_type_id], references: [id])
+  SalesActivityParticipants SalesActivityParticipants[]
+  SalesSchedules            SalesSchedules[]
+}
+
+model SalesActivityParticipants {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sales_activity_id   String            @db.Uuid
+  item_id             String?           @db.Uuid
+  employee_id         String?           @db.Uuid
+  customer_contact_id String?           @db.Uuid
+  name                String            @db.VarChar(50)
+  job_title           String            @db.VarChar(50)
+  email               String            @db.VarChar(50)
+  mobile_phone        String            @db.VarChar(50)
+  created_at          DateTime          @default(now()) @db.Timestamp(0)
+  created_by          String            @db.VarChar(255)
+  updated_at          DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  CustomerContacts    CustomerContacts? @relation(fields: [customer_contact_id], references: [id])
+  Employee            Employee?         @relation(fields: [employee_id], references: [id])
+  SalesActivities     SalesActivities   @relation(fields: [sales_activity_id], references: [id])
+}
+
+model SalesActivityTypes {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  activity_type_code String            @db.VarChar(10)
+  activity_type_name String            @db.VarChar(50)
+  icon               String?           @db.VarChar
+  created_at         DateTime          @default(now()) @db.Timestamp(0)
+  created_by         String            @db.VarChar(255)
+  updated_at         DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  SalesActivities    SalesActivities[]
+  SalesSchedules     SalesSchedules[]
+}
+
+model SalesNotes {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  related_menu_id String    @db.Uuid
+  related_id      String    @db.Uuid
+  note_title      String    @db.VarChar(100)
+  description     String
+  created_at      DateTime  @default(now()) @db.Timestamp(0)
+  created_by      String    @db.VarChar(255)
+  updated_at      DateTime? @default(now()) @db.Timestamp(0)
+  updated_by      String?
+  deleted_at      DateTime?
+  deleted_by      String?
+}
+
+model SalesSchedules {
+  id                     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  related_menu_id        String             @db.Uuid
+  related_id             String             @db.Uuid
+  planned_date           DateTime           @default(now()) @db.Date
+  due_date               DateTime           @default(now()) @db.Date
+  sales_activity_type_id String             @db.Uuid
+  subject                String             @db.VarChar(50)
+  description            String
+  employee_assignee_id   String?            @db.Uuid
+  sales_activity_id      String?            @db.Uuid
+  created_at             DateTime           @default(now()) @db.Timestamp(0)
+  created_by             String             @db.VarChar(255)
+  updated_at             DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  lead_id                String?            @db.Uuid
+  Employee               Employee?          @relation(fields: [employee_assignee_id], references: [id])
+  Leads                  Leads?             @relation(fields: [lead_id], references: [id])
+  SalesActivities        SalesActivities?   @relation(fields: [sales_activity_id], references: [id])
+  SalesActivityTypes     SalesActivityTypes @relation(fields: [sales_activity_type_id], references: [id])
+}
+
+model SalesStagePredecessors {
+  id                                                                   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sales_stage_id                                                       String      @db.Uuid
+  predecessor_stage_id                                                 String      @db.Uuid
+  created_at                                                           DateTime    @default(now()) @db.Timestamp(0)
+  created_by                                                           String      @db.VarChar(255)
+  updated_at                                                           DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by                                                           String?
+  deleted_at                                                           DateTime?
+  deleted_by                                                           String?
+  SalesStages_SalesStagePredecessors_predecessor_stage_idToSalesStages SalesStages @relation("SalesStagePredecessors_predecessor_stage_idToSalesStages", fields: [predecessor_stage_id], references: [id])
+  SalesStages_SalesStagePredecessors_sales_stage_idToSalesStages       SalesStages @relation("SalesStagePredecessors_sales_stage_idToSalesStages", fields: [sales_stage_id], references: [id])
+}
+
+model SalesStages {
+  id                                                                              String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sales_stage_name                                                                String                   @db.VarChar(50)
+  probability_pct                                                                 Int                      @db.SmallInt
+  open_close_flag                                                                 OpenCloseFlag            @default(O)
+  start_flag                                                                      OptionFlag               @default(N)
+  approval_required                                                               OptionFlag               @default(N)
+  create_quotation                                                                OptionFlag               @default(N)
+  created_at                                                                      DateTime                 @default(now()) @db.Timestamp(0)
+  created_by                                                                      String                   @db.VarChar(255)
+  updated_at                                                                      DateTime?                @default(now()) @db.Timestamp(0)
+  updated_by                                                                      String?
+  deleted_at                                                                      DateTime?
+  deleted_by                                                                      String?
+  create_job_order                                                                OptionFlag               @default(N)
+  Opportunities                                                                   Opportunities[]
+  SalesStagePredecessors_SalesStagePredecessors_predecessor_stage_idToSalesStages SalesStagePredecessors[] @relation("SalesStagePredecessors_predecessor_stage_idToSalesStages")
+  SalesStagePredecessors_SalesStagePredecessors_sales_stage_idToSalesStages       SalesStagePredecessors[] @relation("SalesStagePredecessors_sales_stage_idToSalesStages")
+}
+
+model SetupAccountCoda {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_code   String     @db.VarChar(30)
+  coda_el1_code  String?    @db.VarChar(72)
+  coda_el1_flag  Int        @default(0) @db.SmallInt
+  coda_el2_code  String?    @db.VarChar(72)
+  coda_el2_flag  Int        @default(0) @db.SmallInt
+  coda_el3_code  String?    @db.VarChar(72)
+  coda_el3_flag  Int        @default(0) @db.SmallInt
+  coda_el4_code  String?    @db.VarChar(72)
+  coda_el4_flag  Int        @default(0) @db.SmallInt
+  coda_el5_code  String?    @db.VarChar(72)
+  coda_el5_flag  Int        @default(0) @db.SmallInt
+  coda_el6_code  String?    @db.VarChar(72)
+  coda_el6_flag  Int        @default(0) @db.SmallInt
+  coda_el7_code  String?    @db.VarChar(72)
+  coda_el7_flag  Int        @default(0) @db.SmallInt
+  coda_el8_code  String?    @db.VarChar(72)
+  coda_el8_flag  Int        @default(0) @db.SmallInt
+  company_id     String?    @db.Uuid
+  matchable_flag Int        @default(0) @db.SmallInt
+  partner_flag   Int        @default(0) @db.SmallInt
+  created_at     DateTime   @default(now()) @db.Timestamp(0)
+  created_by     String     @db.VarChar(255)
+  updated_at     DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by     String?
+  deleted_at     DateTime?
+  deleted_by     String?
+  Companies      Companies? @relation(fields: [company_id], references: [id])
+}
+
+model SetupCOA {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description   String?     @db.VarChar(300)
+  coa           String?     @db.VarChar(100)
+  coa_reimburse String?     @db.VarChar(100)
+  created_at    DateTime    @default(now()) @db.Timestamp(0)
+  created_by    String      @db.VarChar(255)
+  deleted_at    DateTime?
+  deleted_by    String?
+  coa_module    String?     @db.VarChar(100)
+  Customers     Customers[]
+  Vendors       Vendors[]
+}
+
+model SetupMenuModule {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  route_path         String    @db.VarChar(300)
+  menu_module_config String?
+  created_at         DateTime  @default(now()) @db.Timestamp(0)
+  created_by         String    @db.VarChar(255)
+  updated_at         DateTime? @default(now()) @db.Timestamp(0)
+  updated_by         String?
+  deleted_at         DateTime?
+  deleted_by         String?
+  alias_route_path   String?   @db.VarChar(300)
+}
+
+model SourceInfos {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source_name   String          @db.VarChar(50)
+  description   String
+  created_at    DateTime        @default(now()) @db.Timestamp(0)
+  created_by    String          @db.VarChar(255)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by    String?
+  deleted_at    DateTime?
+  deleted_by    String?
+  Leads         Leads[]
+  Opportunities Opportunities[]
+}
+
+model TBillingDetails {
+  id                                                                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billing_id                                                         String?           @db.Uuid
+  proforma_detail_id                                                 String?           @db.Uuid
+  budget_detail_id                                                   String?           @db.Uuid
+  department_id                                                      String?           @db.Uuid
+  project_id                                                         String?           @db.Uuid
+  charge_category_id                                                 String?           @db.Uuid
+  charge_id                                                          String?           @db.Uuid
+  currency_id                                                        String?           @db.Uuid
+  exchange_rate                                                      Decimal?          @db.Decimal(16, 4)
+  qty                                                                Int?              @db.SmallInt
+  unit_price                                                         Decimal?          @db.Decimal(16, 4)
+  total_amount                                                       Decimal?          @db.Decimal(16, 4)
+  tax_vat_id                                                         String?           @db.Uuid
+  tax_wht_id                                                         String?           @db.Uuid
+  remarks                                                            String?
+  created_at                                                         DateTime          @default(now()) @db.Timestamp(0)
+  created_by                                                         String            @db.VarChar(255)
+  updated_at                                                         DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by                                                         String?
+  deleted_at                                                         DateTime?
+  deleted_by                                                         String?
+  linenum                                                            Int?              @default(1) @db.SmallInt
+  last_run_period                                                    Int?              @db.SmallInt
+  last_run_yr                                                        Int?              @db.SmallInt
+  billing_jurnal_id                                                  String?           @db.Uuid
+  TBillings                                                          TBillings?        @relation(fields: [billing_id], references: [id])
+  TBillingJurnals_TBillingDetails_billing_jurnal_idToTBillingJurnals TBillingJurnals?  @relation("TBillingDetails_billing_jurnal_idToTBillingJurnals", fields: [billing_jurnal_id], references: [id])
+  TBudgetDetails                                                     TBudgetDetails?   @relation(fields: [budget_detail_id], references: [id])
+  ChargeCategories                                                   ChargeCategories? @relation(fields: [charge_category_id], references: [id])
+  Charges                                                            Charges?          @relation(fields: [charge_id], references: [id])
+  Currencies                                                         Currencies?       @relation(fields: [currency_id], references: [id])
+  Departements                                                       Departements?     @relation(fields: [department_id], references: [id])
+  TProformaDetails                                                   TProformaDetails? @relation(fields: [proforma_detail_id], references: [id])
+  Projects                                                           Projects?         @relation(fields: [project_id], references: [id])
+  Taxes_TBillingDetails_tax_vat_idToTaxes                            Taxes?            @relation("TBillingDetails_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_TBillingDetails_tax_wht_idToTaxes                            Taxes?            @relation("TBillingDetails_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+  TBillingJurnals_TBillingJurnals_billing_detail_idToTBillingDetails TBillingJurnals[] @relation("TBillingJurnals_billing_detail_idToTBillingDetails")
+}
+
+model TBillingDocuments {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billing_id       String?        @db.Uuid
+  document_name    String?        @db.VarChar(100)
+  document_url     String?        @db.VarChar
+  created_at       DateTime       @default(now()) @db.Timestamp(0)
+  created_by       String         @db.VarChar(255)
+  updated_at       DateTime?      @default(now()) @db.Timestamp(0)
+  updated_by       String?
+  deleted_at       DateTime?
+  deleted_by       String?
+  document_type_id String?        @db.Uuid
+  TBillings        TBillings?     @relation(fields: [billing_id], references: [id])
+  DocumentTypes    DocumentTypes? @relation(fields: [document_type_id], references: [id])
+}
+
+model TBillingJurnals {
+  id                                                                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billing_id                                                         String?           @db.Uuid
+  billing_detail_id                                                  String?           @db.Uuid
+  el1_code                                                           String?           @db.VarChar(72)
+  el2_code                                                           String?           @db.VarChar(72)
+  el3_code                                                           String?           @db.VarChar(72)
+  el4_code                                                           String?           @db.VarChar(72)
+  el5_code                                                           String?           @db.VarChar(72)
+  el6_code                                                           String?           @db.VarChar(72)
+  el7_code                                                           String?           @db.VarChar(72)
+  el8_code                                                           String?           @db.VarChar(72)
+  currency_id                                                        String?           @db.Uuid
+  exchange_rate                                                      Decimal?          @db.Decimal(16, 4)
+  qty                                                                Int?              @db.SmallInt
+  unit_price                                                         Decimal?          @db.Decimal(16, 4)
+  total_amount                                                       Decimal?          @db.Decimal(16, 4)
+  base_total_amount                                                  Decimal?          @db.Decimal(16, 4)
+  tax_vat_id                                                         String?           @db.Uuid
+  tax_wht_id                                                         String?           @db.Uuid
+  remarks                                                            String?
+  dk                                                                 EDkInd?
+  created_at                                                         DateTime          @default(now()) @db.Timestamp(0)
+  created_by                                                         String            @db.VarChar(255)
+  deleted_at                                                         DateTime?
+  deleted_by                                                         String?
+  linenum                                                            Int?              @default(1) @db.SmallInt
+  TBillingDetails_TBillingDetails_billing_jurnal_idToTBillingJurnals TBillingDetails[] @relation("TBillingDetails_billing_jurnal_idToTBillingJurnals")
+  TBillingDetails_TBillingJurnals_billing_detail_idToTBillingDetails TBillingDetails?  @relation("TBillingJurnals_billing_detail_idToTBillingDetails", fields: [billing_detail_id], references: [id])
+  TBillings                                                          TBillings?        @relation(fields: [billing_id], references: [id])
+  Currencies                                                         Currencies?       @relation(fields: [currency_id], references: [id])
+  Taxes_TBillingJurnals_tax_vat_idToTaxes                            Taxes?            @relation("TBillingJurnals_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_TBillingJurnals_tax_wht_idToTaxes                            Taxes?            @relation("TBillingJurnals_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+}
+
+model TBillings {
+  id                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                 String?             @db.Uuid
+  branch_id                  String?             @db.Uuid
+  billing_type_id            String?             @db.Uuid
+  billing_sub_type_id        String?             @db.Uuid
+  proforma_id                String?             @db.Uuid
+  budget_id                  String?             @db.Uuid
+  billing_no                 String              @db.VarChar(30)
+  billing_date               DateTime
+  yr                         Int                 @db.SmallInt
+  period                     Int                 @db.SmallInt
+  customer_id                String?             @db.Uuid
+  vendor_id                  String?             @db.Uuid
+  employee_id                String?             @db.Uuid
+  credit_term                Int?                @default(0) @db.SmallInt
+  due_date                   DateTime?           @db.Date
+  currency_id                String?             @db.Uuid
+  tax_vat_id                 String?             @db.Uuid
+  remarks                    String?
+  ref_no                     String?             @db.VarChar(50)
+  status                     Int?                @default(0) @db.SmallInt
+  last_approval_sequence     Int?                @default(0) @db.SmallInt
+  move_status                Int?                @default(0) @db.SmallInt
+  move_at                    DateTime?           @db.Timestamp(6)
+  moved_by                   String?
+  created_at                 DateTime            @default(now()) @db.Timestamp(0)
+  created_by                 String              @db.VarChar(255)
+  updated_at                 DateTime?           @default(now()) @db.Timestamp(0)
+  updated_by                 String?
+  deleted_at                 DateTime?
+  deleted_by                 String?
+  amortize_period            Int?                @default(0) @db.SmallInt
+  acknowledge_period         Int?                @default(0) @db.SmallInt
+  url_signed                 String?             @db.VarChar(300)
+  file_name_uploaded         String?             @db.VarChar(255)
+  image_string_serial_number String?
+  serial_number              String?             @db.VarChar(100)
+  step_stamping              Int?                @db.SmallInt
+  url_stamp                  String?             @db.VarChar(255)
+  url_unsigned               String?             @db.VarChar(255)
+  bucket_signed              String?             @db.VarChar(255)
+  bucket_stamp               String?             @db.VarChar(255)
+  bucket_unsigned            String?             @db.VarChar(255)
+  billing_id                 String?             @db.Uuid
+  TBillingDetails            TBillingDetails[]
+  TBillingDocuments          TBillingDocuments[]
+  TBillingJurnals            TBillingJurnals[]
+  BillingSubTypes            BillingSubTypes?    @relation(fields: [billing_sub_type_id], references: [id])
+  BillingTypes               BillingTypes?       @relation(fields: [billing_type_id], references: [id])
+  Branches                   Branches?           @relation(fields: [branch_id], references: [id])
+  TBudgets                   TBudgets?           @relation(fields: [budget_id], references: [id])
+  Companies                  Companies?          @relation(fields: [company_id], references: [id])
+  Currencies                 Currencies?         @relation(fields: [currency_id], references: [id])
+  Customers                  Customers?          @relation(fields: [customer_id], references: [id])
+  Employee                   Employee?           @relation(fields: [employee_id], references: [id])
+  TProformas                 TProformas?         @relation(fields: [proforma_id], references: [id])
+  Taxes                      Taxes?              @relation(fields: [tax_vat_id], references: [id])
+  Vendors                    Vendors?            @relation(fields: [vendor_id], references: [id])
+}
+
+model TBudgetDetails {
+  id                                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  budget_id                              String?           @db.Uuid
+  department_id                          String?           @db.Uuid
+  project_id                             String?           @db.Uuid
+  charge_category_id                     String?           @db.Uuid
+  charge_id                              String?           @db.Uuid
+  currency_id                            String?           @db.Uuid
+  exchange_rate                          Decimal?          @db.Decimal(16, 4)
+  qty                                    Int?              @db.SmallInt
+  unit_price                             Decimal?          @db.Decimal(16, 4)
+  total_amount                           Decimal?          @db.Decimal(16, 4)
+  tax_vat_id                             String?           @db.Uuid
+  tax_wht_id                             String?           @db.Uuid
+  remarks                                String?
+  budget_life                            Int               @default(1) @db.SmallInt
+  start_yr                               Int               @db.SmallInt
+  start_period                           Int               @db.SmallInt
+  remaining_amount                       Decimal?          @db.Decimal(16, 4)
+  accumulated_amount                     Decimal?          @db.Decimal(16, 4)
+  cost_amount                            Decimal?          @db.Decimal(16, 4)
+  last_run_yr                            Int?              @db.SmallInt
+  last_run_period                        Int?              @db.SmallInt
+  created_at                             DateTime          @default(now()) @db.Timestamp(0)
+  created_by                             String            @db.VarChar(255)
+  updated_at                             DateTime?         @default(now()) @db.Timestamp(0)
+  updated_by                             String?
+  deleted_at                             DateTime?
+  deleted_by                             String?
+  linenum                                Int?              @default(1) @db.SmallInt
+  TBillingDetails                        TBillingDetails[]
+  TBudgets                               TBudgets?         @relation(fields: [budget_id], references: [id])
+  ChargeCategories                       ChargeCategories? @relation(fields: [charge_category_id], references: [id])
+  Charges                                Charges?          @relation(fields: [charge_id], references: [id])
+  Currencies                             Currencies?       @relation(fields: [currency_id], references: [id])
+  Departements                           Departements?     @relation(fields: [department_id], references: [id])
+  Projects                               Projects?         @relation(fields: [project_id], references: [id])
+  Taxes_TBudgetDetails_tax_vat_idToTaxes Taxes?            @relation("TBudgetDetails_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_TBudgetDetails_tax_wht_idToTaxes Taxes?            @relation("TBudgetDetails_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+}
+
+model TBudgetDocuments {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  budget_id     String?   @db.Uuid
+  document_name String?   @db.VarChar(100)
+  document_url  String?   @db.VarChar
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  created_by    String    @db.VarChar(255)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_by    String?
+  deleted_at    DateTime?
+  deleted_by    String?
+  TBudgets      TBudgets? @relation(fields: [budget_id], references: [id])
+}
+
+model TBudgets {
+  id                     String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id             String?            @db.Uuid
+  branch_id              String?            @db.Uuid
+  billing_type_id        String?            @db.Uuid
+  billing_sub_type_id    String?            @db.Uuid
+  budget_no              String             @db.VarChar(30)
+  budget_date            DateTime           @db.Date
+  budget_life            Int                @default(1) @db.SmallInt
+  start_yr               Int                @db.SmallInt
+  start_period           Int                @db.SmallInt
+  actual_yr              Int?               @db.SmallInt
+  actual_period          Int?               @db.SmallInt
+  billing_actual_id      String?            @db.Uuid
+  customer_id            String?            @db.Uuid
+  vendor_id              String?            @db.Uuid
+  employee_id            String?            @db.Uuid
+  credit_term            Int?               @default(0) @db.SmallInt
+  currency_id            String?            @db.Uuid
+  tax_vat_id             String?            @db.Uuid
+  remarks                String?
+  ref_no                 String?            @db.VarChar(50)
+  status                 Int?               @default(0) @db.SmallInt
+  last_approval_sequence Int?               @default(0) @db.SmallInt
+  created_at             DateTime           @default(now()) @db.Timestamp(0)
+  created_by             String             @db.VarChar(255)
+  updated_at             DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  TBillings              TBillings[]
+  TBudgetDetails         TBudgetDetails[]
+  TBudgetDocuments       TBudgetDocuments[]
+  BillingSubTypes        BillingSubTypes?   @relation(fields: [billing_sub_type_id], references: [id])
+  BillingTypes           BillingTypes?      @relation(fields: [billing_type_id], references: [id])
+  Branches               Branches?          @relation(fields: [branch_id], references: [id])
+  Companies              Companies?         @relation(fields: [company_id], references: [id])
+  Currencies             Currencies?        @relation(fields: [currency_id], references: [id])
+  Customers              Customers?         @relation(fields: [customer_id], references: [id])
+  Employee               Employee?          @relation(fields: [employee_id], references: [id])
+  Taxes                  Taxes?             @relation(fields: [tax_vat_id], references: [id])
+  Vendors                Vendors?           @relation(fields: [vendor_id], references: [id])
+}
+
+model TProformaDetails {
+  id                                       String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proforma_id                              String?            @db.Uuid
+  lineum                                   Int?               @default(1) @db.SmallInt
+  department_id                            String?            @db.Uuid
+  project_id                               String?            @db.Uuid
+  charge_category_id                       String?            @db.Uuid
+  charge_id                                String?            @db.Uuid
+  currency_id                              String?            @db.Uuid
+  exchange_rate                            Decimal?           @db.Decimal(16, 4)
+  qty                                      Int?               @db.SmallInt
+  unit_price                               Decimal?           @db.Decimal(16, 4)
+  total_amount                             Decimal?           @db.Decimal(16, 4)
+  tax_vat_id                               String?            @db.Uuid
+  tax_wht_id                               String?            @db.Uuid
+  remarks                                  String?
+  created_at                               DateTime           @default(now()) @db.Timestamp(0)
+  created_by                               String             @db.VarChar(255)
+  updated_at                               DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by                               String?
+  deleted_at                               DateTime?
+  deleted_by                               String?
+  linenum                                  Int?               @default(1) @db.SmallInt
+  TBillingDetails                          TBillingDetails[]
+  ChargeCategories                         ChargeCategories?  @relation(fields: [charge_category_id], references: [id])
+  Charges                                  Charges?           @relation(fields: [charge_id], references: [id])
+  Currencies                               Currencies?        @relation(fields: [currency_id], references: [id])
+  Departements                             Departements?      @relation(fields: [department_id], references: [id])
+  TProformas                               TProformas?        @relation(fields: [proforma_id], references: [id])
+  Projects                                 Projects?          @relation(fields: [project_id], references: [id])
+  Taxes_TProformaDetails_tax_vat_idToTaxes Taxes?             @relation("TProformaDetails_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_TProformaDetails_tax_wht_idToTaxes Taxes?             @relation("TProformaDetails_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+  TProformaJurnals                         TProformaJurnals[]
+}
+
+model TProformaDocuments {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proforma_id   String?     @db.Uuid
+  document_name String?     @db.VarChar(100)
+  document_url  String?     @db.VarChar
+  created_at    DateTime    @default(now()) @db.Timestamp(0)
+  created_by    String      @db.VarChar(255)
+  updated_at    DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by    String?
+  deleted_at    DateTime?
+  deleted_by    String?
+  TProformas    TProformas? @relation(fields: [proforma_id], references: [id])
+}
+
+model TProformaJurnals {
+  id                                       String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  proforma_id                              String?           @db.Uuid
+  proforma_detail_id                       String?           @db.Uuid
+  el1_code                                 String?           @db.VarChar(72)
+  el2_code                                 String?           @db.VarChar(72)
+  el3_code                                 String?           @db.VarChar(72)
+  el4_code                                 String?           @db.VarChar(72)
+  el5_code                                 String?           @db.VarChar(72)
+  el6_code                                 String?           @db.VarChar(72)
+  el7_code                                 String?           @db.VarChar(72)
+  el8_code                                 String?           @db.VarChar(72)
+  currency_id                              String?           @db.Uuid
+  exchange_rate                            Decimal?          @db.Decimal(16, 4)
+  qty                                      Int?              @db.SmallInt
+  unit_price                               Decimal?          @db.Decimal(16, 4)
+  total_amount                             Decimal?          @db.Decimal(16, 4)
+  base_total_amount                        Decimal?          @db.Decimal(16, 4)
+  tax_vat_id                               String?           @db.Uuid
+  tax_wht_id                               String?           @db.Uuid
+  remarks                                  String?
+  dk                                       EDkInd?
+  created_at                               DateTime          @default(now()) @db.Timestamp(0)
+  created_by                               String            @db.VarChar(255)
+  deleted_at                               DateTime?
+  deleted_by                               String?
+  linenum                                  Int?              @default(1) @db.SmallInt
+  Currencies                               Currencies?       @relation(fields: [currency_id], references: [id])
+  TProformaDetails                         TProformaDetails? @relation(fields: [proforma_detail_id], references: [id])
+  TProformas                               TProformas?       @relation(fields: [proforma_id], references: [id])
+  Taxes_TProformaJurnals_tax_vat_idToTaxes Taxes?            @relation("TProformaJurnals_tax_vat_idToTaxes", fields: [tax_vat_id], references: [id])
+  Taxes_TProformaJurnals_tax_wht_idToTaxes Taxes?            @relation("TProformaJurnals_tax_wht_idToTaxes", fields: [tax_wht_id], references: [id])
+}
+
+model TProformas {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id             String?              @db.Uuid
+  branch_id              String?              @db.Uuid
+  billing_type_id        String?              @db.Uuid
+  billing_sub_type_id    String?              @db.Uuid
+  proforma_no            String               @db.VarChar(250)
+  proforma_date          DateTime             @db.Date
+  yr                     Int                  @db.SmallInt
+  period                 Int                  @db.SmallInt
+  customer_id            String?              @db.Uuid
+  vendor_id              String?              @db.Uuid
+  employee_id            String?              @db.Uuid
+  credit_term            Int?                 @default(0) @db.SmallInt
+  currency_id            String?              @db.Uuid
+  tax_vat_id             String?              @db.Uuid
+  remarks                String?
+  ref_no                 String?              @db.VarChar(50)
+  status                 Int?                 @default(0) @db.SmallInt
+  last_approval_sequence Int?                 @default(0) @db.SmallInt
+  created_at             DateTime             @default(now()) @db.Timestamp(0)
+  created_by             String               @db.VarChar(255)
+  updated_at             DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by             String?
+  deleted_at             DateTime?
+  deleted_by             String?
+  amortize_period        Int?                 @default(0) @db.SmallInt
+  acknowledge_period     Int?                 @default(0) @db.SmallInt
+  TBillings              TBillings[]
+  TProformaDetails       TProformaDetails[]
+  TProformaDocuments     TProformaDocuments[]
+  TProformaJurnals       TProformaJurnals[]
+  BillingSubTypes        BillingSubTypes?     @relation(fields: [billing_sub_type_id], references: [id])
+  BillingTypes           BillingTypes?        @relation(fields: [billing_type_id], references: [id])
+  Branches               Branches?            @relation(fields: [branch_id], references: [id])
+  Companies              Companies?           @relation(fields: [company_id], references: [id])
+  Currencies             Currencies?          @relation(fields: [currency_id], references: [id])
+  Customers              Customers?           @relation(fields: [customer_id], references: [id])
+  Employee               Employee?            @relation(fields: [employee_id], references: [id])
+  Taxes                  Taxes?               @relation(fields: [tax_vat_id], references: [id])
+  Vendors                Vendors?             @relation(fields: [vendor_id], references: [id])
+}
+
+model Taxes {
+  id                                                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                                          String?            @db.Uuid
+  tax_flag                                            TaxFlag?
+  tax_code                                            String             @db.VarChar(30)
+  tax_name                                            String             @db.VarChar(50)
+  rate                                                Float?
+  ie_flag                                             TaxIeFlag?
+  tax_factor                                          Decimal?           @default(0) @db.Decimal(6, 4)
+  coa_tax_output                                      String             @db.VarChar(30)
+  coa_tax_input                                       String             @db.VarChar(30)
+  created_at                                          DateTime           @default(now()) @db.Timestamp(0)
+  created_by                                          String             @db.VarChar(255)
+  updated_at                                          DateTime?          @default(now()) @db.Timestamp(0)
+  updated_by                                          String?
+  deleted_at                                          DateTime?
+  deleted_by                                          String?
+  tax_base_factor                                     Decimal?           @default(0) @db.Decimal(6, 4)
+  Charges_Charges_tax_vat_idToTaxes                   Charges[]          @relation("Charges_tax_vat_idToTaxes")
+  Charges_Charges_tax_wht_idToTaxes                   Charges[]          @relation("Charges_tax_wht_idToTaxes")
+  Opportunities                                       Opportunities[]
+  QuotationCharges_QuotationCharges_tax_vat_idToTaxes QuotationCharges[] @relation("QuotationCharges_tax_vat_idToTaxes")
+  QuotationCharges_QuotationCharges_tax_wht_idToTaxes QuotationCharges[] @relation("QuotationCharges_tax_wht_idToTaxes")
+  TBillingDetails_TBillingDetails_tax_vat_idToTaxes   TBillingDetails[]  @relation("TBillingDetails_tax_vat_idToTaxes")
+  TBillingDetails_TBillingDetails_tax_wht_idToTaxes   TBillingDetails[]  @relation("TBillingDetails_tax_wht_idToTaxes")
+  TBillingJurnals_TBillingJurnals_tax_vat_idToTaxes   TBillingJurnals[]  @relation("TBillingJurnals_tax_vat_idToTaxes")
+  TBillingJurnals_TBillingJurnals_tax_wht_idToTaxes   TBillingJurnals[]  @relation("TBillingJurnals_tax_wht_idToTaxes")
+  TBillings                                           TBillings[]
+  TBudgetDetails_TBudgetDetails_tax_vat_idToTaxes     TBudgetDetails[]   @relation("TBudgetDetails_tax_vat_idToTaxes")
+  TBudgetDetails_TBudgetDetails_tax_wht_idToTaxes     TBudgetDetails[]   @relation("TBudgetDetails_tax_wht_idToTaxes")
+  TBudgets                                            TBudgets[]
+  TProformaDetails_TProformaDetails_tax_vat_idToTaxes TProformaDetails[] @relation("TProformaDetails_tax_vat_idToTaxes")
+  TProformaDetails_TProformaDetails_tax_wht_idToTaxes TProformaDetails[] @relation("TProformaDetails_tax_wht_idToTaxes")
+  TProformaJurnals_TProformaJurnals_tax_vat_idToTaxes TProformaJurnals[] @relation("TProformaJurnals_tax_vat_idToTaxes")
+  TProformaJurnals_TProformaJurnals_tax_wht_idToTaxes TProformaJurnals[] @relation("TProformaJurnals_tax_wht_idToTaxes")
+  TProformas                                          TProformas[]
+  Companies                                           Companies?         @relation(fields: [company_id], references: [id])
+}
+
+model TermConditions {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  charge_service_id String         @db.Uuid
+  title             String         @db.VarChar(255)
+  content           String
+  created_at        DateTime       @default(now()) @db.Timestamp(0)
+  created_by        String         @db.VarChar(255)
+  updated_at        DateTime?
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  is_default        Boolean        @default(false)
+  ChargeServices    ChargeServices @relation(fields: [charge_service_id], references: [id])
+}
+
+model Units {
+  id                   String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unit_code            String              @db.VarChar(30)
+  unit_name            String              @db.VarChar(50)
+  product_service_flag ProductServiceFlag?
+  created_at           DateTime            @default(now()) @db.Timestamp(0)
+  created_by           String              @db.VarChar(255)
+  updated_at           DateTime?           @default(now()) @db.Timestamp(0)
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+  Charges              Charges[]
+}
+
+model UserAuth {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username             String
+  password             String               @db.VarChar(300)
+  employee_id          String               @db.Uuid
+  group_id             String               @db.Uuid
+  is_active            Int                  @default(0)
+  url_profile          String?              @db.VarChar(255)
+  sso_flag             OptionFlag           @default(N)
+  sso_user_id          String?              @db.VarChar(300)
+  sso_type             SSOType?
+  created_at           DateTime             @default(now()) @db.Timestamp(0)
+  created_by           String               @db.VarChar(255)
+  updated_at           DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by           String?
+  deleted_at           DateTime?
+  deleted_by           String?
+  user_type            UserType?            @default(Employee)
+  application_code     String?              @db.VarChar(100)
+  failed_login_attempt Int                  @default(0) @db.SmallInt
+  is_locked            Boolean              @default(false)
+  CompanyAccessGroup   CompanyAccessGroup[]
+  Employee             Employee             @relation(fields: [employee_id], references: [id])
+  Groups               Groups               @relation(fields: [group_id], references: [id])
+}
+
+model VendorBanks {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id         String?   @db.Uuid
+  bank_id           String?   @db.Uuid
+  currency_id       String?   @db.Uuid
+  bank_office_name  String    @db.VarChar(100)
+  bank_account_no   String    @db.VarChar(50)
+  bank_account_name String    @db.VarChar(100)
+  bank_swift_code   String?   @db.VarChar(50)
+  created_at        DateTime  @default(now()) @db.Timestamp(0)
+  created_by        String    @db.VarChar(255)
+  updated_at        DateTime? @default(now()) @db.Timestamp(0)
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  Banks             Banks?    @relation(fields: [bank_id], references: [id])
+  Vendors           Vendors?  @relation(fields: [vendor_id], references: [id])
+}
+
+model VendorContacts {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id           String?     @db.Uuid
+  salutation          Salutation?
+  contact_id_no       String?     @db.VarChar(100)
+  contact_id_url      String?     @db.VarChar
+  email               String?     @db.VarChar(100)
+  phone_no            String?     @db.VarChar(100)
+  mobile_no           String?     @db.VarChar(100)
+  is_primary          Int         @default(0) @db.SmallInt
+  created_at          DateTime    @default(now()) @db.Timestamp(0)
+  created_by          String      @db.VarChar(255)
+  updated_at          DateTime?   @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  flag_email_invoice  Boolean?    @default(false)
+  vendor_contact_name String?     @db.VarChar(100)
+  job_title           String?     @db.VarChar(50)
+  Vendors             Vendors?    @relation(fields: [vendor_id], references: [id])
+}
+
+model VendorFaxes {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id  String?    @db.Uuid
+  country_id String?    @db.Uuid
+  fax_no     String?    @db.VarChar(100)
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  created_by String     @db.VarChar(255)
+  updated_at DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by String?
+  deleted_at DateTime?
+  deleted_by String?
+  Countries  Countries? @relation(fields: [country_id], references: [id])
+  Vendors    Vendors?   @relation(fields: [vendor_id], references: [id])
+}
+
+model VendorLegalDocuments {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id           String?         @db.Uuid
+  legal_document_id   String?         @db.Uuid
+  document_no         String?         @db.VarChar(100)
+  validity_start_date DateTime?       @db.Date
+  validity_end_date   DateTime?       @db.Date
+  document_url        String?
+  created_at          DateTime        @default(now()) @db.Timestamp(0)
+  created_by          String          @db.VarChar(255)
+  updated_at          DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  LegalDocuments      LegalDocuments? @relation(fields: [legal_document_id], references: [id])
+  Vendors             Vendors?        @relation(fields: [vendor_id], references: [id])
+}
+
+model VendorPhones {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id    String?    @db.Uuid
+  country_id   String?    @db.Uuid
+  phone_no     String?    @db.VarChar(100)
+  extension_no String?    @db.VarChar(10)
+  created_at   DateTime   @default(now()) @db.Timestamp(0)
+  created_by   String     @db.VarChar(255)
+  updated_at   DateTime?  @default(now()) @db.Timestamp(0)
+  updated_by   String?
+  deleted_at   DateTime?
+  deleted_by   String?
+  Countries    Countries? @relation(fields: [country_id], references: [id])
+  Vendors      Vendors?   @relation(fields: [vendor_id], references: [id])
+}
+
+model VendorProductLists {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_id         String?         @db.Uuid
+  vendor_product_id String?         @db.Uuid
+  created_at        DateTime        @default(now()) @db.Timestamp(0)
+  created_by        String          @db.VarChar(255)
+  updated_at        DateTime?       @default(now()) @db.Timestamp(0)
+  updated_by        String?
+  deleted_at        DateTime?
+  deleted_by        String?
+  Vendors           Vendors?        @relation(fields: [vendor_id], references: [id])
+  VendorProducts    VendorProducts? @relation(fields: [vendor_product_id], references: [id])
+}
+
+model VendorProducts {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vendor_product_code String               @db.VarChar(30)
+  vendor_product_name String               @db.VarChar(100)
+  description         String?
+  created_at          DateTime             @default(now()) @db.Timestamp(0)
+  created_by          String               @db.VarChar(255)
+  updated_at          DateTime?            @default(now()) @db.Timestamp(0)
+  updated_by          String?
+  deleted_at          DateTime?
+  deleted_by          String?
+  VendorProductLists  VendorProductLists[]
+}
+
+model Vendors {
+  id                                              String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id                                      String?                @db.Uuid
+  branch_id                                       String?                @db.Uuid
+  business_entity_id                              String?                @db.Uuid
+  business_permit_id                              String?                @db.Uuid
+  vendor_code                                     String?                @unique @db.VarChar(30)
+  vendor_name                                     String?                @db.VarChar(100)
+  vendor_address                                  String?
+  country_id                                      String?                @db.Uuid
+  city_id                                         String?                @db.Uuid
+  billing_name                                    String?                @db.VarChar(100)
+  billing_address                                 String?
+  billing_country_id                              String?                @db.Uuid
+  billing_city_id                                 String?                @db.Uuid
+  email                                           String?                @db.VarChar(100)
+  website                                         String?                @db.VarChar(100)
+  tax_registration_no                             String?                @db.VarChar(100)
+  credit_term                                     Int?                   @db.SmallInt
+  credit_limit                                    Int?
+  setup_coa_id                                    String?                @db.Uuid
+  coa                                             String?                @db.VarChar(72)
+  coda_vendor_code                                String?                @db.VarChar(72)
+  vendor_id                                       String?                @db.Uuid
+  status                                          Int                    @default(0) @db.SmallInt
+  last_approval_sequence                          Int                    @default(0) @db.SmallInt
+  created_at                                      DateTime               @default(now()) @db.Timestamp(0)
+  created_by                                      String                 @db.VarChar(255)
+  updated_at                                      DateTime?              @default(now()) @db.Timestamp(0)
+  updated_by                                      String?
+  deleted_at                                      DateTime?
+  deleted_by                                      String?
+  TBillings                                       TBillings[]
+  TBudgets                                        TBudgets[]
+  TProformas                                      TProformas[]
+  VendorBanks                                     VendorBanks[]
+  VendorContacts                                  VendorContacts[]
+  VendorFaxes                                     VendorFaxes[]
+  VendorLegalDocuments                            VendorLegalDocuments[]
+  VendorPhones                                    VendorPhones[]
+  VendorProductLists                              VendorProductLists[]
+  Cities_Vendors_billing_city_idToCities          Cities?                @relation("Vendors_billing_city_idToCities", fields: [billing_city_id], references: [id])
+  Countries_Vendors_billing_country_idToCountries Countries?             @relation("Vendors_billing_country_idToCountries", fields: [billing_country_id], references: [id])
+  Branches                                        Branches?              @relation(fields: [branch_id], references: [id])
+  BusinessEntities                                BusinessEntities?      @relation(fields: [business_entity_id], references: [id])
+  BusinessPermits                                 BusinessPermits?       @relation(fields: [business_permit_id], references: [id])
+  Cities_Vendors_city_idToCities                  Cities?                @relation("Vendors_city_idToCities", fields: [city_id], references: [id])
+  Companies                                       Companies?             @relation(fields: [company_id], references: [id])
+  Countries_Vendors_country_idToCountries         Countries?             @relation("Vendors_country_idToCountries", fields: [country_id], references: [id])
+  SetupCOA                                        SetupCOA?              @relation(fields: [setup_coa_id], references: [id])
+  Vendors                                         Vendors?               @relation("VendorsToVendors", fields: [vendor_id], references: [id])
+  other_Vendors                                   Vendors[]              @relation("VendorsToVendors")
+}
+
+enum ApprovalAction {
+  approval
+  blacklist
+  unblacklist
+}
+
+enum ApprovalStatus {
+  D
+  I
+  F
+  C
+}
+
+enum ApprovalValueType {
+  Percentage
+  Amount
+}
+
+enum BankAccountType {
+  O
+  C
+}
+
+enum BusinessType {
+  NB
+  EB
+}
+
+enum CreditRating {
+  R
+  Y
+  G
+}
+
+enum DiscountType {
+  P
+  L
+  N
+}
+
+enum EActivityFlag {
+  R
+  C
+}
+
+enum EAnalysisDk {
+  D
+  K
+}
+
+enum EDkInd {
+  D
+  K
+}
+
+enum EPartnerFlag {
+  C
+  V
+  E
+}
+
+enum EPermissionType {
+  Module
+  Feature
+  Function
+}
+
+enum EProjectStatus {
+  P
+  F
+  J
+  C
+}
+
+enum EReverseStatus {
+  N
+  O
+  C
+  R
+}
+
+enum ESummaryDk {
+  D
+  K
+}
+
+enum EVatIo {
+  I
+  O
+}
+
+enum EWhtIo {
+  I
+  O
+}
+
+enum EnumAccountType {
+  P
+  C
+}
+
+enum EnumPackageTypeGroupFlag {
+  Server
+  Service
+}
+
+enum Language {
+  Ina
+  Eng
+}
+
+enum LeadRating {
+  H
+  W
+  C
+}
+
+enum MonitoringStatus {
+  N
+  I
+  D
+  C
+}
+
+enum OfficeFlagBranch {
+  HO
+  BRANCH
+  RO
+}
+
+enum OpenCloseFlag {
+  O
+  C
+}
+
+enum OptionFlag {
+  Y
+  N
+}
+
+enum ProductServiceFlag {
+  P
+  S
+}
+
+enum RejectAction {
+  downgrade
+  reset
+}
+
+enum SSOType {
+  GOOGLE
+  GITHUB
+  TWITTER
+}
+
+enum Salutation {
+  Mr
+  Mrs
+  Ms
+}
+
+enum TaxFlag {
+  VAT
+  WHT
+}
+
+enum TaxIeFlag {
+  I
+  E
+}
+
+enum UserType {
+  Employee
+  Customer
+  Customer_Buyer
+  Vendor
+  Driver
+}

@@ -2,12 +2,14 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RequestIdMiddleware } from './core/middlewares/request-id.middleware';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './core/auth/jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
 import { RolesGuard } from './core/guards/roles.guard';
+import { PrismaModule } from 'prisma/prisma.module';
+import { RedisModule } from '@nestjs-modules/ioredis'
 
 @Module({
   imports: [
@@ -19,7 +21,19 @@ import { RolesGuard } from './core/guards/roles.guard';
       signOptions: {
         expiresIn: '3h'
       }
-    })
+    }),
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'single',
+        options: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          password: configService.get<string>('REDIS_PASSWORD'),
+        },
+      })
+    }),
+    PrismaModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy, {

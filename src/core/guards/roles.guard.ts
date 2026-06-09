@@ -1,26 +1,43 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    @InjectRedis() private readonly redis: Redis,
+  ) { }
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const requiredPermissions = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    
-    if (!requiredRoles) {
-      return true; // No roles required, allow access
+
+    if (!requiredPermissions) return true;
+
+    const request = context.switchToHttp().getRequest();
+    const userId = request.user?.sub;
+
+    if (!userId) throw new UnauthorizedException('User not authenticated');
+
+    const cachedData = await this.redis.get(`user:${userId}:permissions`);
+
+    if (!cachedData) {
+      throw new UnauthorizedException('Session expired or invalid. Please log in again.');
     }
 
-    const { user } = context.switchToHttp().getRequest();
-    
-    // Assuming user object is attached to request via AuthGuard earlier in the pipeline
-    if (!user || !user.roles) return false;
+    const userPermissions: string[] = JSON.parse(cachedData);
 
-    return requiredRoles.some((role) => user.roles?.includes(role));
+    const hasPermission = requiredPermissions.some((perm) => userPermissions.includes(perm));
+
+    if (!hasPermission) {
+      throw new ForbiddenException('Access denied: Insufficient permissions');
+    }
+
+    return true;
   }
 }
