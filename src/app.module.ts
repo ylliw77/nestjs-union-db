@@ -1,16 +1,15 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { RequestIdMiddleware } from './core/middlewares/request-id.middleware';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './core/auth/jwt.strategy';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
 import { RolesGuard } from './core/guards/roles.guard';
 import { PrismaModule } from 'prisma/prisma.module';
 import { RedisModule } from '@nestjs-modules/ioredis'
-
+import { ZodValidationPipe } from 'nestjs-zod';
+import { ApiModule } from './api/api.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,13 +32,17 @@ import { RedisModule } from '@nestjs-modules/ioredis'
         },
       })
     }),
-    PrismaModule
+    PrismaModule,
+    ApiModule
   ],
-  controllers: [AppController],
-  providers: [AppService, JwtStrategy, {
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard
+  controllers: [],
+  providers: [JwtStrategy, {
+    provide: APP_PIPE,
+    useClass: ZodValidationPipe
   }, {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard
+    }, {
       provide: APP_GUARD,
       useClass: RolesGuard
     }],
