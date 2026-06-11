@@ -10,16 +10,7 @@ import { cleanupOpenApiDoc } from 'nestjs-zod';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const apiDocs = SwaggerModule.createDocument(app,
-    new DocumentBuilder()
-      .setTitle('SaaS Api Docs')
-      .setDescription('Your app description')
-      .setVersion('1.0')
-      .build(), {
-    include: [ApiModule]
-  })
 
-  SwaggerModule.setup('/api', app, cleanupOpenApiDoc(apiDocs))
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 
@@ -31,6 +22,22 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  const apiDocs = SwaggerModule.createDocument(app,
+    new DocumentBuilder()
+      .setTitle('SaaS Api Docs')
+      .setDescription('Your app description')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build(), {
+    include: [ApiModule]
+  })
+
+  SwaggerModule.setup('/api', app, cleanupOpenApiDoc(apiDocs), {
+    swaggerOptions: {
+      persistAuthorization: true
+    }
+  })
 
   await app.listen(process.env.APP_PORT || '5000');
   console.clear();
